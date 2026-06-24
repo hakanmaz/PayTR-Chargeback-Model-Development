@@ -1,182 +1,1857 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Bundled Page</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #faf9f5; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; }
-    #__bundler_thumbnail { position: fixed; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #faf9f5; z-index: 9999; }
-    #__bundler_thumbnail svg { width: 100%; height: 100%; object-fit: contain; }
-    #__bundler_placeholder { color: #999; font-size: 14px; }
-  </style>
-  <noscript>
-    <style>#__bundler_loading { display: none; }</style>
-    <div style="position:fixed;bottom:12px;left:12px;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;color:#999;background:rgba(255,255,255,0.9);padding:6px 12px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);z-index:10000;">
-      This page requires JavaScript to display.
-    </div>
-  </noscript>
-</head>
-<body>
-  <div id="__bundler_thumbnail">
-  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100" height="100" fill="#0F4761"></rect>
-    <rect x="30" y="34" width="44" height="7" rx="2" fill="#ffffff"></rect>
-    <rect x="38" y="47" width="36" height="7" rx="2" fill="#7fa9bd"></rect>
-    <rect x="30" y="60" width="28" height="7" rx="2" fill="#ffffff"></rect>
-    <rect x="46" y="20" width="3" height="60" fill="#C6803A"></rect>
-  </svg>
-</div>
-  <div id="__bundler_loading">Unpacking...</div>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="// GENERATED from dc-runtime/src/*.ts — do not edit. Rebuild with `cd dc-runtime && bun run build`.
+"use strict";
+(() => {
+  var __defProp = Object.defineProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-  <script>
-    
-document.addEventListener('DOMContentLoaded', async function() {
-  const loading = document.getElementById('__bundler_loading');
-  function setStatus(msg) { if (loading) loading.textContent = msg; }
+  // src/react.ts
+  function getReact() {
+    const R = window.React;
+    if (!R) throw new Error("dc-runtime: window.React is not available yet");
+    return R;
+  }
+  function getReactDOM() {
+    const RD = window.ReactDOM;
+    if (!RD) throw new Error("dc-runtime: window.ReactDOM is not available yet");
+    return RD;
+  }
+  var h = ((...args) => getReact().createElement(
+    ...args
+  ));
 
-  // Error sink persists across replaceWith since it's on window, not the DOM.
-  window.addEventListener('error', function(e) {
-    var p = document.body || document.documentElement;
-    var d = document.getElementById('__bundler_err') || p.appendChild(document.createElement('div'));
-    d.id = '__bundler_err';
-    d.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;font:12px/1.4 ui-monospace,monospace;background:#2a1215;color:#ff8a80;padding:10px 14px;border-radius:8px;border:1px solid #5c2b2e;z-index:99999;white-space:pre-wrap;max-height:40vh;overflow:auto';
-    d.textContent = (d.textContent ? d.textContent + String.fromCharCode(10) : '') +
-      '[bundle] ' + (e.message || e.type) +
-      (e.filename ? ' (' + e.filename.slice(0, 60) + ':' + e.lineno + ')' : '');
-  }, true);
-
-  try {
-    const manifestEl = document.querySelector('script[type="__bundler/manifest"]');
-    const templateEl = document.querySelector('script[type="__bundler/template"]');
-    if (!manifestEl || !templateEl) {
-      setStatus('Error: missing bundle data');
-      console.error('[bundler] Missing script tags — manifestEl:', !!manifestEl, 'templateEl:', !!templateEl);
-      return;
+  // src/parse.ts
+  function parseDcDocument(doc) {
+    const dc = doc.querySelector("x-dc");
+    if (!dc) return null;
+    const scriptEl = doc.querySelector("script[data-dc-script]");
+    const { props, preview } = parseDataProps(
+      scriptEl?.getAttribute("data-props") ?? null
+    );
+    return {
+      template: dc.innerHTML,
+      js: scriptEl ? scriptEl.textContent || "" : "",
+      props,
+      preview
+    };
+  }
+  function parseDcText(src) {
+    const openMatch = /<x-dc(?:\s[^>]*)?>/.exec(src);
+    if (!openMatch) return null;
+    const close = src.lastIndexOf("</x-dc>");
+    if (close === -1 || close < openMatch.index) return null;
+    const template = src.slice(openMatch.index + openMatch[0].length, close);
+    const doc = new DOMParser().parseFromString(src, "text/html");
+    const scriptEl = doc.querySelector("script[data-dc-script]");
+    const { props, preview } = parseDataProps(
+      scriptEl?.getAttribute("data-props") ?? null
+    );
+    return {
+      template,
+      js: scriptEl ? scriptEl.textContent || "" : "",
+      props,
+      preview
+    };
+  }
+  function parseDataProps(raw) {
+    if (!raw) return { props: null, preview: null };
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return { props: null, preview: null };
     }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return { props: null, preview: null };
+    }
+    const obj = parsed;
+    const preview = obj.$preview && typeof obj.$preview === "object" ? obj.$preview : null;
+    const rest = {};
+    for (const k of Object.keys(obj)) {
+      if (k[0] !== "$") rest[k] = obj[k];
+    }
+    return { props: Object.keys(rest).length ? rest : null, preview };
+  }
+  function dcNameFromPath(pathname) {
+    let p = pathname || "";
+    try {
+      p = decodeURIComponent(p);
+    } catch {
+    }
+    const base = p.split("/").pop() || "Root";
+    return base.replace(/\.dc\.html$/, "").replace(/\.html?$/, "") || "Root";
+  }
 
-    const manifest = JSON.parse(manifestEl.textContent);
-    let template = JSON.parse(templateEl.textContent);
-
-    const uuids = Object.keys(manifest);
-    setStatus('Unpacking ' + uuids.length + ' assets...');
-
-    const blobUrls = {};
-    await Promise.all(uuids.map(async (uuid) => {
-      const entry = manifest[uuid];
+  // src/boot.ts
+  var BASE_CSS = `
+    .sc-placeholder{background:rgba(255,255,255,.3);border:1px solid rgba(0,0,0,.5);
+      border-radius:2px;box-sizing:border-box;overflow:hidden}
+    @keyframes sc-shine{0%{background-position:100% 50%}100%{background-position:0% 50%}}
+    html.sc-dc-streaming .sc-placeholder,
+    html.sc-dc-streaming .sc-interp.sc-missing{position:relative;
+      background:color-mix(in srgb,currentColor 5%,transparent);
+      border-color:transparent}
+    html.sc-dc-streaming .sc-placeholder::before,
+    html.sc-dc-streaming .sc-interp.sc-missing::before{content:'';
+      position:absolute;inset:0;pointer-events:none;
+      background:linear-gradient(90deg,rgba(217,119,87,0) 25%,rgba(247,225,211,.95) 37%,rgba(217,119,87,0) 63%);
+      background-size:400% 100%;animation:sc-shine 1.4s ease infinite}
+    html.sc-dc-streaming .sc-placeholder:nth-child(n+9 of .sc-placeholder)::before,
+    html.sc-dc-streaming .sc-interp.sc-missing:nth-child(n+9 of .sc-interp.sc-missing)::before{animation:none;
+      background:color-mix(in srgb,currentColor 8%,transparent)}
+    .sc-placeholder-error{padding:4px 8px;font:11px/1.4 ui-monospace,monospace;
+      color:rgba(0,0,0,.7);word-break:break-word}
+    .sc-interp.sc-missing{display:inline-block;width:2em;height:1em;overflow:hidden;
+      vertical-align:text-bottom;background:rgba(255,255,255,.3);border:1px solid rgba(0,0,0,.5);
+      border-radius:2px;box-sizing:border-box;color:transparent;
+      user-select:none}
+    .sc-interp.sc-unresolved{font-family:ui-monospace,monospace;font-size:.85em;
+      color:rgba(0,0,0,.5);background:rgba(0,0,0,.05);border-radius:3px;
+      padding:0 3px}
+    .sc-host.sc-has-error{position:relative}
+    .sc-logic-error{position:absolute;top:8px;left:8px;z-index:2147483647;max-width:60ch;
+      padding:6px 10px;background:#b00020;color:#fff;font:12px/1.4 ui-monospace,monospace;
+      border-radius:4px;white-space:pre-wrap;pointer-events:none}
+    /* Mirrors PRINT_BASELINE_CSS in apps/web deck-stage-export.ts \u2014 keep both
+       in sync until dc-runtime regains a build step. */
+    @media print {
+      @page { margin: 0.5cm; }
+      figure, table { break-inside: avoid; }
+      #dc-root, #dc-root > .sc-host { height: auto; }
+      *, *::before, *::after {
+        print-color-adjust: exact; -webkit-print-color-adjust: exact;
+        backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+        animation-delay: -99s !important; animation-duration: .001s !important;
+        animation-iteration-count: 1 !important; animation-fill-mode: both !important;
+        animation-play-state: running !important; transition-duration: 0s !important;
+      }
+    }
+  `;
+  var FULL_PAGE_CSS = "html,body{height:100%;margin:0}#dc-root,#dc-root>.sc-host{height:100%}";
+  function rootNameForDocument(doc, loc) {
+    let bootPath = loc.pathname || "";
+    if (!/\.dc\.html?$/i.test(safeDecode(bootPath))) {
       try {
-        const binaryStr = atob(entry.data);
-        const bytes = new Uint8Array(binaryStr.length);
-        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+        bootPath = new URL(doc.baseURI || "/").pathname;
+      } catch {
+      }
+    }
+    return dcNameFromPath(bootPath);
+  }
+  function safeDecode(s) {
+    try {
+      return decodeURIComponent(s);
+    } catch {
+      return s;
+    }
+  }
+  function boot(runtime, doc = document) {
+    const parsed = parseDcDocument(doc);
+    if (!parsed) return null;
+    const React = getReact();
+    const rootName = rootNameForDocument(doc, location);
+    runtime.markFetched(rootName);
+    runtime.setRootName(rootName);
+    runtime.adoptParsed(rootName, parsed);
+    fetch(location.href).then((res) => res.ok ? res.text() : "").then((t) => {
+      const raw = t ? parseDcText(t) : null;
+      if (raw?.template) runtime.updateHtml(rootName, raw.template);
+    }).catch(() => {
+    });
+    const dc = doc.querySelector("x-dc");
+    const hostEl = doc.createElement("div");
+    hostEl.id = "dc-root";
+    dc.replaceWith(hostEl);
+    if (!parsed.preview) {
+      const s = doc.createElement("style");
+      s.textContent = FULL_PAGE_CSS;
+      doc.head.appendChild(s);
+    }
+    const Root = runtime.getDC(rootName);
+    const entry = runtime.registry.get(rootName);
+    function StandaloneRoot() {
+      const [, setTick] = React.useState(0);
+      React.useEffect(() => {
+        const sub = () => setTick((n) => n + 1);
+        entry.subs.add(sub);
+        return () => {
+          entry.subs.delete(sub);
+        };
+      }, []);
+      return h(Root, entry.propOverrides || null);
+    }
+    const ReactDOM = getReactDOM();
+    if (ReactDOM.createRoot)
+      ReactDOM.createRoot(hostEl).render(h(StandaloneRoot));
+    else ReactDOM.render(h(StandaloneRoot), hostEl);
+    return rootName;
+  }
 
-        let finalBytes = bytes;
-        if (entry.compressed) {
-          if (typeof DecompressionStream !== 'undefined') {
-            const ds = new DecompressionStream('gzip');
-            const writer = ds.writable.getWriter();
-            const reader = ds.readable.getReader();
-            writer.write(bytes);
-            writer.close();
-            const chunks = [];
-            let totalLen = 0;
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              chunks.push(value);
-              totalLen += value.length;
+  // src/expr.ts
+  var IDENT_RE = /^[A-Za-z_$][A-Za-z0-9_$]*/;
+  var NUMBER_RE = /^-?\d+(\.\d+)?$/;
+  function resolve(vals, src) {
+    const expr = String(src).trim();
+    if (!expr) return void 0;
+    if (expr[0] === "(" && expr[expr.length - 1] === ")" && parensWrapWhole(expr)) {
+      return resolve(vals, expr.slice(1, -1));
+    }
+    const eq = findTopLevelEquality(expr);
+    if (eq) {
+      const lv = resolve(vals, expr.slice(0, eq.index));
+      const rv = resolve(vals, expr.slice(eq.index + eq.op.length));
+      switch (eq.op) {
+        case "===":
+          return lv === rv;
+        case "!==":
+          return lv !== rv;
+        case "==":
+          return lv == rv;
+        default:
+          return lv != rv;
+      }
+    }
+    if (expr[0] === "!") return !resolve(vals, expr.slice(1));
+    if (expr === "true") return true;
+    if (expr === "false") return false;
+    if (expr === "null") return null;
+    if (expr === "undefined") return void 0;
+    if (NUMBER_RE.test(expr)) return Number(expr);
+    if (expr.length >= 2 && (expr[0] === '"' || expr[0] === "'") && expr[expr.length - 1] === expr[0]) {
+      return expr.slice(1, -1);
+    }
+    return resolvePath(vals, expr);
+  }
+  function parensWrapWhole(expr) {
+    let depth = 0;
+    for (let i = 0; i < expr.length - 1; i++) {
+      if (expr[i] === "(") depth++;
+      else if (expr[i] === ")") {
+        depth--;
+        if (depth === 0) return false;
+      }
+    }
+    return true;
+  }
+  function findTopLevelEquality(expr) {
+    let depth = 0;
+    for (let i = 0; i < expr.length; i++) {
+      const c = expr[i];
+      if (c === "[" || c === "(") depth++;
+      else if (c === "]" || c === ")") depth--;
+      else if (depth === 0 && (c === "=" || c === "!") && expr[i + 1] === "=") {
+        if (i > 0 && (expr[i - 1] === "=" || expr[i - 1] === "!")) continue;
+        if (!expr.slice(0, i).trim()) continue;
+        const op = expr[i + 2] === "=" ? c + "==" : c + "=";
+        return { index: i, op };
+      }
+    }
+    return null;
+  }
+  function resolvePath(vals, expr) {
+    const head = expr.match(IDENT_RE);
+    if (!head) return void 0;
+    let cur = vals == null ? void 0 : vals[head[0]];
+    let i = head[0].length;
+    while (i < expr.length) {
+      if (expr[i] === ".") {
+        const m = expr.slice(i + 1).match(IDENT_RE) || expr.slice(i + 1).match(/^\d+/);
+        if (!m) return void 0;
+        cur = cur == null ? void 0 : cur[m[0]];
+        i += 1 + m[0].length;
+      } else if (expr[i] === "[") {
+        let depth = 1;
+        let j = i + 1;
+        while (j < expr.length && depth > 0) {
+          if (expr[j] === "[") depth++;
+          else if (expr[j] === "]") {
+            depth--;
+            if (depth === 0) break;
+          }
+          j++;
+        }
+        if (depth !== 0) return void 0;
+        const key = resolve(vals, expr.slice(i + 1, j));
+        cur = cur == null ? void 0 : cur[key];
+        i = j + 1;
+      } else {
+        return void 0;
+      }
+    }
+    return cur;
+  }
+
+  // src/encode.ts
+  var CAMEL_ATTR = "sc-camel-";
+  var RAW_WRAP = {
+    select: "sc-raw-select",
+    table: "sc-raw-table",
+    tbody: "sc-raw-tbody",
+    thead: "sc-raw-thead",
+    tfoot: "sc-raw-tfoot",
+    tr: "sc-raw-tr",
+    td: "sc-raw-td",
+    th: "sc-raw-th",
+    caption: "sc-raw-caption"
+  };
+  var RAW_UNWRAP = Object.fromEntries(
+    Object.entries(RAW_WRAP).map(([k, v]) => [v, k])
+  );
+  var EVENT_MAP = {
+    onclick: "onClick",
+    onchange: "onChange",
+    oninput: "onInput",
+    onsubmit: "onSubmit",
+    onkeydown: "onKeyDown",
+    onkeyup: "onKeyUp",
+    onkeypress: "onKeyPress",
+    onmousedown: "onMouseDown",
+    onmouseup: "onMouseUp",
+    onmouseenter: "onMouseEnter",
+    onmouseleave: "onMouseLeave",
+    onfocus: "onFocus",
+    onblur: "onBlur",
+    ondoubleclick: "onDoubleClick",
+    oncontextmenu: "onContextMenu"
+  };
+  var ATTRS = `(?:[^>"']|"[^"]*"|'[^']*')*`;
+  var IMPORT_SELF_CLOSE_RE = new RegExp(
+    "<(x-import|dc-import)(" + ATTRS + ")/>",
+    "gi"
+  );
+  var CAMEL_ATTR_RE = /(\s)([a-z]+[A-Z][A-Za-z0-9]*)(\s*=)/g;
+  function encodeCase(html) {
+    html = html.replace(
+      IMPORT_SELF_CLOSE_RE,
+      (_, t, a) => "<" + t + a + "></" + t + ">"
+    );
+    html = html.replace(/<helmet(\s|>)/gi, "<sc-helmet$1");
+    html = html.replace(/<\/helmet\s*>/gi, "</sc-helmet>");
+    html = html.replace(
+      CAMEL_ATTR_RE,
+      (_, sp, name, eq) => sp + CAMEL_ATTR + name.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + eq
+    );
+    for (const [real, alias] of Object.entries(RAW_WRAP)) {
+      html = html.replace(
+        new RegExp("(</?)" + real + "(?=[\\s>])", "gi"),
+        "$1" + alias
+      );
+    }
+    return html;
+  }
+  function kebabToCamel(s) {
+    return s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+  }
+  function cssToObj(css) {
+    const o = {};
+    for (const decl of css.split(";")) {
+      const i = decl.indexOf(":");
+      if (i < 0) continue;
+      const prop = decl.slice(0, i).trim();
+      o[prop.startsWith("--") ? prop : kebabToCamel(prop)] = decl.slice(i + 1).trim();
+    }
+    return o;
+  }
+  function compileAttr(raw) {
+    const whole = raw.match(/^\s*\{\{([\s\S]+?)\}\}\s*$/);
+    if (whole) {
+      const path = whole[1];
+      return (vals) => resolve(vals, path);
+    }
+    if (raw.includes("{{")) {
+      const parts = raw.split(/\{\{([\s\S]+?)\}\}/g);
+      return (vals) => parts.map((s, i) => i & 1 ? resolve(vals, s) ?? "" : s).join("");
+    }
+    return () => raw;
+  }
+
+  // src/compile.ts
+  function collectProps(node, isComponent, host) {
+    const propGetters = [];
+    const pseudoClasses = [];
+    let hintSize = null;
+    for (const { name, value } of [...node.attributes]) {
+      if (name === "sc-name" || name === "data-dc-tpl") continue;
+      let key = name;
+      if (key.startsWith(CAMEL_ATTR))
+        key = kebabToCamel(key.slice(CAMEL_ATTR.length));
+      if (key === "hint-size") {
+        hintSize = value;
+        continue;
+      }
+      if (key.startsWith("style-")) {
+        pseudoClasses.push(host.pseudoClass(key.slice(6), value));
+        continue;
+      }
+      if (isComponent) {
+        if (key.includes("-")) key = kebabToCamel(key);
+      } else {
+        if (key === "class") key = "className";
+        else if (key === "for") key = "htmlFor";
+        else if (key.startsWith("on"))
+          key = EVENT_MAP[key] || "on" + key[2].toUpperCase() + key.slice(3);
+      }
+      propGetters.push([key, compileAttr(value)]);
+    }
+    return { propGetters, pseudoClasses, hintSize };
+  }
+  var HOST_STYLE_PROPS = /* @__PURE__ */ new Set([
+    "position",
+    "left",
+    "right",
+    "top",
+    "bottom",
+    "inset",
+    "width",
+    "height",
+    "z-index",
+    "transform"
+  ]);
+  function hostPositionStyle(style) {
+    const all = typeof style === "string" ? cssToObj(style) : style != null && typeof style === "object" ? style : null;
+    if (!all) return void 0;
+    const out = {};
+    for (const [k, v] of Object.entries(all)) {
+      const kebab = k.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
+      if (HOST_STYLE_PROPS.has(kebab)) out[k] = v;
+    }
+    return Object.keys(out).length ? out : void 0;
+  }
+  function compileTemplate(html, host) {
+    const tpl = document.createElement("template");
+    //! nosemgrep: direct-inner-html-assignment
+    tpl.innerHTML = encodeCase(html);
+    let tplN = 0;
+    (function stamp(node) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        node.setAttribute("data-dc-tpl", String(tplN++));
+      }
+      for (const c of node.childNodes) stamp(c);
+    })(tpl.content);
+    const builders = walkChildren(tpl.content, host);
+    const render = ((vals, ctx) => builders.map((b, i) => b(vals || {}, ctx, i)));
+    render.__annotated = tpl.innerHTML;
+    return render;
+  }
+  function walkChildren(node, host) {
+    return [...node.childNodes].map((c) => walk(c, host)).filter((b) => b != null);
+  }
+  function walk(node, host) {
+    if (node.nodeType === Node.TEXT_NODE) return walkText(node);
+    if (node.nodeType !== Node.ELEMENT_NODE) return null;
+    const el = node;
+    const tag = el.tagName.toLowerCase();
+    if (tag === "sc-for") return walkFor(el, host);
+    if (tag === "sc-if") return walkIf(el, host);
+    if (tag === "x-import") return walkXImport(el, host);
+    if (tag === "sc-helmet") return host.helmet(el);
+    if (tag === "dc-import") return walkComponent(el, host);
+    return walkElement(el, host);
+  }
+  var warnedHoles = /* @__PURE__ */ new Set();
+  function warnUnresolved(ctx, what) {
+    const key = (ctx?.__name || "?") + "\0" + what;
+    if (warnedHoles.has(key)) return;
+    warnedHoles.add(key);
+    console.warn("[dc-runtime] " + (ctx?.__name || "template") + ": " + what);
+  }
+  function walkText(node) {
+    const txt = node.nodeValue ?? "";
+    if (!txt.includes("{{")) {
+      if (!txt.trim() && !txt.includes(" ")) return null;
+      return () => txt;
+    }
+    const parts = txt.split(/\{\{([\s\S]+?)\}\}/g);
+    return (vals, ctx, key) => h(
+      getReact().Fragment,
+      { key },
+      ...parts.map((p, i) => {
+        if (!(i & 1)) return p;
+        const v = resolve(vals, p);
+        if (v === void 0) {
+          if (!ctx?.__streamingNow) {
+            if (document.body?.hasAttribute("data-dc-editor-on")) {
+              return h(
+                "span",
+                { key: i, className: "sc-interp sc-unresolved" },
+                "{{ " + p.trim() + " }}"
+              );
             }
-            finalBytes = new Uint8Array(totalLen);
-            let offset = 0;
-            for (const chunk of chunks) { finalBytes.set(chunk, offset); offset += chunk.length; }
-          } else {
-            console.warn('DecompressionStream not available, asset ' + uuid + ' may not render');
+            warnUnresolved(
+              ctx,
+              "{{ " + p.trim() + " }} never resolved \u2014 rendered as empty"
+            );
+            return null;
+          }
+          return h(
+            "span",
+            { key: i, className: "sc-interp sc-missing" },
+            p.trim()
+          );
+        }
+        if (getReact().isValidElement(v) || Array.isArray(v)) {
+          return h(getReact().Fragment, { key: i }, v);
+        }
+        if (v === null || typeof v === "boolean") return null;
+        return h("span", { key: i, className: "sc-interp" }, String(v));
+      })
+    );
+  }
+  function walkFor(el, host) {
+    const listGet = compileAttr(el.getAttribute("list") || "");
+    const asName = el.getAttribute("as") || "item";
+    const hintN = parseInt(el.getAttribute("hint-placeholder-count") || "0", 10);
+    const kids = walkChildren(el, host);
+    const listSrc = el.getAttribute("list") || "";
+    return (vals, ctx, key) => {
+      let list = listGet(vals);
+      if (!Array.isArray(list)) {
+        if (!ctx?.__streamingNow) {
+          if (list !== void 0 && list !== null) {
+            warnUnresolved(
+              ctx,
+              'sc-for list="' + listSrc + '" is not an array (' + typeof list + ")"
+            );
+          }
+          list = [];
+        } else {
+          list = hintN > 0 ? Array(hintN).fill(void 0) : [];
+        }
+      }
+      return h(
+        getReact().Fragment,
+        { key },
+        list.map((item, i) => {
+          const sub = { ...vals, [asName]: item, $index: i };
+          return h(
+            getReact().Fragment,
+            { key: i },
+            kids.map((b, j) => b(sub, ctx, j))
+          );
+        })
+      );
+    };
+  }
+  function walkIf(el, host) {
+    const valGet = compileAttr(el.getAttribute("value") || "");
+    const hintRaw = el.getAttribute("hint-placeholder-val");
+    const hintGet = hintRaw != null ? compileAttr(hintRaw) : null;
+    const kids = walkChildren(el, host);
+    return (vals, ctx, key) => {
+      let v = valGet(vals);
+      if (v === void 0 && hintGet && ctx?.__streamingNow) v = hintGet(vals);
+      return v ? h(
+        getReact().Fragment,
+        { key },
+        kids.map((b, j) => b(vals, ctx, j))
+      ) : null;
+    };
+  }
+  function walkComponent(el, host) {
+    const name = el.getAttribute("name") || el.getAttribute("component") || "";
+    el.removeAttribute("name");
+    el.removeAttribute("component");
+    const tplId = el.getAttribute("data-dc-tpl");
+    const styleRaw = el.getAttribute("style");
+    el.removeAttribute("style");
+    const styleGet = styleRaw != null ? compileAttr(styleRaw) : null;
+    const { propGetters, hintSize } = collectProps(el, true, host);
+    const kids = walkChildren(el, host);
+    return (vals, ctx, key) => {
+      const props = {
+        key,
+        __hintSize: hintSize,
+        __tplId: tplId,
+        __hostStyle: styleGet ? hostPositionStyle(styleGet(vals)) : void 0
+      };
+      for (const [k, g] of propGetters) props[k] = g(vals);
+      if (kids.length) props.children = kids.map((b, j) => b(vals, ctx, j));
+      return h(host.component(name), props);
+    };
+  }
+  function walkXImport(el, host) {
+    const globalNameGet = compileAttr(
+      el.getAttribute("component-from-global-scope") || ""
+    );
+    const exportNameGet = compileAttr(
+      el.getAttribute("component") || el.getAttribute("name") || ""
+    );
+    const url = el.getAttribute("from") || el.getAttribute("src") || el.getAttribute("import") || "";
+    const kind = /\.(jsx|tsx)(\?|#|$)/i.test(url) ? "jsx" : "js";
+    const tplId = el.getAttribute("data-dc-tpl");
+    const styleRaw = el.getAttribute("style");
+    el.removeAttribute("style");
+    const styleGet = styleRaw != null ? compileAttr(styleRaw) : null;
+    const wrap = tplId != null || styleGet != null;
+    const { propGetters, hintSize } = collectProps(el, true, host);
+    const hasContent = el.children.length > 0 || !!(el.textContent || "").trim();
+    const kids = hasContent ? walkChildren(el, host) : [];
+    const urlBindable = url.includes("{{");
+    if (url && !urlBindable) host.loadExternal(kind, url);
+    const evalName = (g, vals) => {
+      const v = g(vals);
+      const s = v == null ? "" : String(v);
+      return s.includes("{{") ? "" : s;
+    };
+    return (vals, ctx, key) => {
+      const globalName = evalName(globalNameGet, vals);
+      const name = globalName || evalName(exportNameGet, vals);
+      const C = !name || urlBindable ? null : globalName ? host.resolveExternalGlobal(url, globalName) : host.resolveExternal(url, name);
+      const hostStyle = styleGet ? hostPositionStyle(styleGet(vals)) : void 0;
+      const wrapper = wrap ? {
+        key,
+        className: "sc-host-x",
+        "data-dc-tpl": tplId,
+        style: hostStyle || { display: "contents" }
+      } : null;
+      if (!C) {
+        const error = urlBindable ? "x-import `from` cannot contain {{ \u2026 }} \u2014 module URLs are resolved at parse time; use a literal URL" : host.resolveExternalError(url, name);
+        const ph = host.placeholder({
+          key: wrapper ? void 0 : key,
+          name,
+          hintSize,
+          error
+        });
+        return wrapper ? h("div", wrapper, ph) : ph;
+      }
+      const props = wrapper ? {} : { key };
+      let unresolvedHole = false;
+      for (const [k, g] of propGetters) {
+        if (k === "component" || k === "componentFromGlobalScope" || k === "name" || k === "from" || k === "src" || k === "import") {
+          continue;
+        }
+        const v = g(vals);
+        if (v === void 0) unresolvedHole = true;
+        props[k] = v;
+      }
+      if (unresolvedHole && ctx?.__htmlStreamingNow) {
+        const ph = host.placeholder({
+          key: wrapper ? void 0 : key,
+          name,
+          hintSize,
+          error: null
+        });
+        return wrapper ? h("div", wrapper, ph) : ph;
+      }
+      if (kids.length) props.children = kids.map((b, j) => b(vals, ctx, j));
+      return wrapper ? h("div", wrapper, h(C, props)) : h(C, props);
+    };
+  }
+  function walkElement(el, host) {
+    const realTag = RAW_UNWRAP[el.localName] || el.localName;
+    const tplId = el.getAttribute("data-dc-tpl");
+    const { propGetters, pseudoClasses } = collectProps(el, false, host);
+    const kids = walkChildren(el, host);
+    return (vals, ctx, key) => {
+      const props = { key, "data-dc-tpl": tplId };
+      for (const [k, g] of propGetters) {
+        let v = g(vals);
+        if (k === "style" && typeof v === "string") v = cssToObj(v);
+        if ((k === "value" || k === "checked") && v === void 0) {
+          v = k === "checked" ? false : "";
+        }
+        props[k] = v;
+      }
+      if (pseudoClasses.length) {
+        props.className = [props.className, ...pseudoClasses].filter(Boolean).join(" ");
+      }
+      return h(realTag, props, ...kids.map((b, j) => b(vals, ctx, j)));
+    };
+  }
+
+  // src/logic.ts
+  var StreamableLogic = class {
+    constructor(props) {
+      __publicField(this, "props");
+      __publicField(this, "state", {});
+      /** Back-pointer to the wrapper component, installed after construction. */
+      __publicField(this, "__host");
+      this.props = props || {};
+    }
+    setState(update, cb) {
+      this.__host && this.__host.__setLogicState(update, cb);
+    }
+    forceUpdate() {
+      this.__host && this.__host.forceUpdate();
+    }
+    componentDidMount() {
+    }
+    componentDidUpdate(_prevProps) {
+    }
+    componentWillUnmount() {
+    }
+    /** The flat object the template renders against (merged over props). */
+    renderVals() {
+      return {};
+    }
+  };
+  function evalDcLogic(src) {
+    //! nosemgrep: eval-and-function-constructor
+    const fn = new Function(
+      "DCLogic",
+      "StreamableLogic",
+      "React",
+      src + '\n;return (typeof Component!=="undefined"&&Component)||undefined;'
+    );
+    return fn(StreamableLogic, StreamableLogic, getReact());
+  }
+
+  // src/component.ts
+  function shallowEqual(a, b) {
+    if (!b) return false;
+    const ak = Object.keys(a).filter((k) => k !== "children");
+    const bk = Object.keys(b).filter((k) => k !== "children");
+    if (ak.length !== bk.length) return false;
+    for (const k of ak) if (a[k] !== b[k]) return false;
+    return true;
+  }
+  function Placeholder({
+    name,
+    hintSize,
+    streaming,
+    error
+  }) {
+    const [w, hgt] = (hintSize || "100%,60px").split(",");
+    return h(
+      "div",
+      {
+        className: "sc-placeholder" + (streaming ? " sc-streaming" : ""),
+        style: { width: w.trim(), height: hgt && hgt.trim() },
+        title: name
+      },
+      error ? h(
+        "div",
+        { className: "sc-placeholder-error" },
+        (name ? name + ": " : "") + error
+      ) : null
+    );
+  }
+  function hintToMin(hint) {
+    if (!hint) return void 0;
+    const [w, hgt] = hint.split(",");
+    return { minWidth: w.trim(), minHeight: hgt && hgt.trim() };
+  }
+  function createComponentFactory(registry, ensureFetched) {
+    const React = getReact();
+    const AncestorContext = React.createContext([]);
+    class StreamableComponent extends React.Component {
+      constructor(props) {
+        super(props);
+        __publicField(this, "__name");
+        __publicField(this, "__sub");
+        __publicField(this, "__needsDidMount", false);
+        /** Snapshot of the registry's streaming flags taken at render time —
+         *  builders read it off the RenderCtx (this) to pick placeholder vs
+         *  render-nothing for unresolved values. */
+        __publicField(this, "__streamingNow", false);
+        __publicField(this, "__htmlStreamingNow", false);
+        /** When a construct throws, remember the (class, registry.ver, props)
+         *  triple so render-time reconcile doesn't re-attempt it on every parent
+         *  re-render. A registry bump (new class, template, external module
+         *  resolving via bumpAll) changes `ver` and breaks the memo so an
+         *  env-dependent constructor can self-heal. */
+        __publicField(this, "__failedLogic", null);
+        __publicField(this, "__failedUserProps", null);
+        __publicField(this, "__failedVer", -1);
+        /** Per-instance constructor error — kept here (not on the registry entry)
+         *  so one instance's successful construct can't hide a sibling's failure,
+         *  and a construct can never wipe an eval error `updateJs` recorded on
+         *  `r.logicError`. */
+        __publicField(this, "__ctorError", null);
+        __publicField(this, "logic");
+        this.__name = props.__name;
+        this.state = { __v: 0, __err: null };
+        this.__sub = () => {
+          if (this.state.__err) this.setState({ __err: null });
+          this.forceUpdate();
+        };
+        this.__makeLogic(registry.get(this.__name).Logic, null);
+        ensureFetched(this.__name);
+      }
+      /** Error-boundary hook: a render crash anywhere in this DC's subtree
+       *  (its own template, an x-import'd component, a child DC without its
+       *  own deeper boundary) lands here instead of unmounting the page. */
+      static getDerivedStateFromError(e) {
+        return { __err: e instanceof Error && e.message ? e.message : String(e) };
+      }
+      componentDidCatch(e, info) {
+        console.error(
+          "[dc-runtime] render error in <" + this.__name + ">:",
+          e,
+          info?.componentStack || ""
+        );
+      }
+      /** Instantiate the logic class (or the no-op base) and adopt `prevState`
+       *  over its initial state — used both at mount and on hot-swap. */
+      __makeLogic(Logic, prevState) {
+        const L = Logic || StreamableLogic;
+        try {
+          this.logic = new L(this.__userProps());
+          this.__failedLogic = null;
+          this.__failedUserProps = null;
+          this.__ctorError = null;
+        } catch (e) {
+          console.error(e);
+          this.__failedLogic = Logic;
+          this.__failedUserProps = this.__userProps();
+          this.__failedVer = registry.get(this.__name).ver;
+          this.__ctorError = this.__name + ": " + (e instanceof Error && e.message ? e.message : String(e));
+          this.logic = new StreamableLogic(
+            this.__userProps()
+          );
+        }
+        this.logic.__host = this;
+        if (prevState)
+          this.logic.state = { ...this.logic.state || {}, ...prevState };
+      }
+      /** The props the author's logic + template see — internal __-prefixed
+       *  wiring stripped. */
+      __userProps() {
+        const { __name, __hintSize, __tplId, __hostStyle, ...rest } = this.props;
+        return rest;
+      }
+      __setLogicState(update, cb) {
+        const prev = this.logic.state;
+        const patch = typeof update === "function" ? update(prev) : update;
+        this.logic.state = { ...prev, ...patch };
+        this.setState((s) => ({ __v: s.__v + 1 }), cb);
+      }
+      /** Swap the logic instance when the registry's Logic class changed
+       *  (streaming completion, hot reload). State carries over; didMount
+       *  re-fires after the swap commits so refs exist. */
+      __reconcileLogic() {
+        const r = registry.get(this.__name);
+        const Next = r.Logic;
+        const Cur = this.logic.constructor;
+        if (Next === Cur || !Next && Cur === StreamableLogic || Next === this.__failedLogic && r.ver === this.__failedVer && shallowEqual(this.__userProps(), this.__failedUserProps)) {
+          return;
+        }
+        if (!this.__needsDidMount) {
+          try {
+            this.logic.componentWillUnmount();
+          } catch (e) {
+            console.error(e);
           }
         }
-
-        blobUrls[uuid] = URL.createObjectURL(new Blob([finalBytes], { type: entry.mime }));
-      } catch (err) {
-        console.error('Failed to decode asset ' + uuid + ':', err);
-        blobUrls[uuid] = URL.createObjectURL(new Blob([], { type: entry.mime }));
+        this.__makeLogic(Next, this.logic.state);
+        this.__needsDidMount = true;
       }
+      componentDidMount() {
+        registry.get(this.__name).subs.add(this.__sub);
+        try {
+          this.logic.componentDidMount();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      componentDidUpdate(prevProps) {
+        this.logic.props = this.__userProps();
+        if (this.__needsDidMount) {
+          if (this.state.__err || !registry.get(this.__name).tpl) return;
+          this.__needsDidMount = false;
+          try {
+            this.logic.componentDidMount();
+          } catch (e) {
+            console.error(e);
+          }
+        } else {
+          try {
+            this.logic.componentDidUpdate(prevProps);
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+      componentWillUnmount() {
+        registry.get(this.__name).subs.delete(this.__sub);
+        if (!this.__needsDidMount) {
+          try {
+            this.logic.componentWillUnmount();
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+      render() {
+        const r = registry.get(this.__name);
+        const cls = "sc-host" + (r.htmlStreaming ? " sc-streaming-html" : "") + (r.jsStreaming ? " sc-streaming-js" : "");
+        const hintStyle = r.htmlStreaming ? hintToMin(this.props.__hintSize) : void 0;
+        const hostStyle = this.props.__hostStyle || hintStyle ? { ...hintStyle || {}, ...this.props.__hostStyle || {} } : void 0;
+        const hostBase = {
+          className: cls,
+          style: hostStyle,
+          "data-sc-name": this.__name,
+          "data-dc-tpl": this.props.__tplId
+        };
+        const chain = Array.isArray(this.context) ? this.context : [];
+        if (chain.includes(this.__name)) {
+          const cycle = [
+            ...chain.slice(chain.indexOf(this.__name)),
+            this.__name
+          ].join(" \u2192 ");
+          return h(
+            "div",
+            { ...hostBase, className: cls + " sc-has-error" },
+            h(Placeholder, {
+              name: this.__name,
+              hintSize: this.props.__hintSize,
+              error: "circular import: " + cycle
+            })
+          );
+        }
+        if (this.state.__err) {
+          return h(
+            "div",
+            { ...hostBase, className: cls + " sc-has-error" },
+            h(
+              "div",
+              { className: "sc-logic-error" },
+              this.__name + ": " + this.state.__err
+            ),
+            h(Placeholder, {
+              name: this.__name,
+              hintSize: this.props.__hintSize,
+              error: this.state.__err
+            })
+          );
+        }
+        this.__reconcileLogic();
+        if (!r.tpl) {
+          return h(
+            "div",
+            hostBase,
+            h(Placeholder, { name: this.__name, hintSize: this.props.__hintSize })
+          );
+        }
+        const userProps = this.__userProps();
+        this.logic.props = userProps;
+        let vals = userProps;
+        let renderErr = r.logicError || this.__ctorError;
+        try {
+          vals = { ...userProps, ...this.logic.renderVals() || {} };
+        } catch (e) {
+          console.error(e);
+          renderErr = this.__name + ".renderVals(): " + (e instanceof Error && e.message ? e.message : String(e));
+        }
+        this.__streamingNow = !!(r.htmlStreaming || r.jsStreaming);
+        this.__htmlStreamingNow = !!r.htmlStreaming;
+        return h(
+          "div",
+          { ...hostBase, className: cls + (renderErr ? " sc-has-error" : "") },
+          renderErr && h("div", { className: "sc-logic-error" }, renderErr),
+          h(
+            AncestorContext.Provider,
+            { value: [...chain, this.__name] },
+            r.tpl(vals, this)
+          )
+        );
+      }
+    }
+    __publicField(StreamableComponent, "contextType", AncestorContext);
+    const named = /* @__PURE__ */ new Map();
+    function getDC(name) {
+      const hit = named.get(name);
+      if (hit) return hit;
+      function Dispatcher(p) {
+        const [, setTick] = React.useState(0);
+        React.useEffect(() => {
+          const sub = () => setTick((n) => n + 1);
+          registry.get(name).subs.add(sub);
+          return () => {
+            registry.get(name).subs.delete(sub);
+          };
+        }, []);
+        ensureFetched(name);
+        return h(StreamableComponent, { ...p, __name: name });
+      }
+      Dispatcher.displayName = name;
+      named.set(name, Dispatcher);
+      return Dispatcher;
+    }
+    return {
+      getDC,
+      StreamableComponent
+    };
+  }
+
+  // src/external.ts
+  var isCustomElementName = (n) => !n.includes(".") && n.includes("-");
+  function isRenderableType(g) {
+    if (typeof g === "function") return !isElementClass(g);
+    return typeof g === "object" && g !== null && typeof g.$$typeof === "symbol";
+  }
+  function resolveDottedPath(root, name) {
+    let cur = root;
+    for (const seg of name.split(".")) {
+      if (cur == null) return void 0;
+      cur = cur[seg];
+    }
+    return cur;
+  }
+  var BABEL_URL = "https://unpkg.com/@babel/standalone@7.26.4/babel.min.js";
+  var GLOBAL_POLL_INTERVAL_MS = 50;
+  var GLOBAL_POLL_TIMEOUT_MS = 3e4;
+  function createExternalModules(onResolved) {
+    const cache = /* @__PURE__ */ new Map();
+    let babelLoading = null;
+    const reportedMissing = /* @__PURE__ */ new Map();
+    const polling = /* @__PURE__ */ new Set();
+    function ensureBabel() {
+      if (window.Babel) return Promise.resolve();
+      if (babelLoading) return babelLoading;
+      babelLoading = new Promise((res, rej) => {
+        const s = document.createElement("script");
+        s.src = BABEL_URL;
+        s.crossOrigin = "anonymous";
+        s.onload = () => res();
+        s.onerror = rej;
+        document.head.appendChild(s);
+      });
+      return babelLoading;
+    }
+    function load(kind, url) {
+      if (cache.has(url)) return;
+      cache.set(url, null);
+      console.info("[dc-runtime] x-import: loading", url, "(" + kind + ")");
+      const ready = kind === "jsx" ? ensureBabel() : Promise.resolve();
+      ready.then(() => fetch(url)).then((r) => {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.text();
+      }).then((src) => {
+        const code = kind === "jsx" ? window.Babel.transform(src, {
+          filename: url,
+          presets: ["react", "typescript"]
+        }).code : src;
+        const module = { exports: {} };
+        const before = new Set(Object.keys(window));
+        //! nosemgrep: eval-and-function-constructor
+        new Function("React", "module", "exports", "require", code)(
+          getReact(),
+          module,
+          module.exports,
+          () => ({})
+        );
+        const globals = {};
+        for (const k of Object.keys(window)) {
+          if (!before.has(k) && typeof window[k] === "function") {
+            globals[k] = window[k];
+          }
+        }
+        cache.set(url, { mod: module.exports, globals });
+        console.info(
+          "[dc-runtime] x-import: loaded",
+          url,
+          "\u2014 exports:",
+          Object.keys(module.exports),
+          "window globals:",
+          Object.keys(globals)
+        );
+        onResolved();
+      }).catch((e) => {
+        cache.set(url, {
+          mod: {},
+          globals: {},
+          error: "failed to load: " + (e instanceof Error && e.message ? e.message : String(e))
+        });
+        console.error(
+          "[dc-runtime] x-import: FAILED to load",
+          url,
+          "(" + kind + ")",
+          e
+        );
+        onResolved();
+      });
+    }
+    function resolve2(url, name) {
+      const entry = cache.get(url);
+      if (!entry) return null;
+      const { mod, globals } = entry;
+      const C = mod && mod[name] || globals && globals[name] || typeof window !== "undefined" && window[name] || mod && mod.default;
+      if (typeof C === "function") return C;
+      const key = url + "\0" + name;
+      if (!reportedMissing.has(key)) {
+        reportedMissing.set(
+          key,
+          entry.error || 'no export named "' + name + '" (has: ' + Object.keys(mod).join(", ") + ")"
+        );
+        console.error(
+          "[dc-runtime] x-import: module",
+          url,
+          "loaded but has no component named",
+          JSON.stringify(name),
+          "\u2014 available exports:",
+          Object.keys(mod),
+          "window globals:",
+          Object.keys(globals),
+          ". The module must `module.exports = {" + name + "}` or set `window." + name + "`."
+        );
+      }
+      return null;
+    }
+    function waitForGlobal(name) {
+      if (polling.has(name)) return;
+      polling.add(name);
+      const started = Date.now();
+      const isCE = isCustomElementName(name);
+      const tick = () => {
+        const found = isCE ? customElements.get(name) : isRenderableType(resolveDottedPath(window, name));
+        if (found) {
+          polling.delete(name);
+          onResolved();
+          return;
+        }
+        if (Date.now() - started >= GLOBAL_POLL_TIMEOUT_MS) {
+          console.warn(
+            "[dc-runtime] x-import: global",
+            JSON.stringify(name),
+            "never appeared on window after " + GLOBAL_POLL_TIMEOUT_MS + "ms"
+          );
+          return;
+        }
+        setTimeout(tick, GLOBAL_POLL_INTERVAL_MS);
+      };
+      setTimeout(tick, GLOBAL_POLL_INTERVAL_MS);
+    }
+    function resolveGlobal(url, name) {
+      const isCE = isCustomElementName(name);
+      if (!url) {
+        if (isCE) {
+          if (customElements.get(name)) return name;
+          waitForGlobal(name);
+          return null;
+        }
+        const g2 = resolveDottedPath(window, name);
+        if (isRenderableType(g2)) return g2;
+        waitForGlobal(name);
+        return null;
+      }
+      const entry = cache.get(url);
+      if (!entry) return null;
+      if (isCE && customElements.get(name)) return name;
+      const g = entry.globals[name] ?? resolveDottedPath(window, name);
+      if (isRenderableType(g)) return g;
+      if (name.includes(".")) return null;
+      const key = url + "\0global\0" + name;
+      if (!reportedMissing.has(key)) {
+        reportedMissing.set(key, null);
+        if (isCE && !customElements.get(name)) {
+          console.warn(
+            "[dc-runtime] x-import:",
+            url,
+            "loaded but no custom element",
+            JSON.stringify(name),
+            "is registered and window." + name + " is not a function \u2014 rendering <" + name + "> as an unknown element."
+          );
+        }
+      }
+      return name;
+    }
+    function getError(url, name) {
+      const entry = cache.get(url);
+      if (entry?.error) return entry.error;
+      return reportedMissing.get(url + "\0" + name) || null;
+    }
+    return { load, resolve: resolve2, resolveGlobal, getError };
+  }
+  function isElementClass(g) {
+    try {
+      return typeof g === "function" && typeof HTMLElement !== "undefined" && g.prototype instanceof HTMLElement;
+    } catch {
+      return false;
+    }
+  }
+
+  // src/atomics.ts
+  var ATOMIC_CSS = (
+    // layout
+    ".fx{display:flex}.col{display:flex;flex-direction:column}.grid{display:grid}.ac{align-items:center}.jc{justify-content:center}.jb{justify-content:space-between}.f1{flex:1}.noshrink{flex-shrink:0}.wrap{flex-wrap:wrap}.fw5{font-weight:500}.fw6{font-weight:600}.fw7{font-weight:700}.fw8{font-weight:800}.fs11{font-size:11px}.fs12{font-size:12px}.fs13{font-size:13px}.fs14{font-size:14px}.fs15{font-size:15px}.fs16{font-size:16px}.fs20{font-size:20px}.fs22{font-size:22px}.upper{text-transform:uppercase}.tc{text-align:center}.nowrap{white-space:nowrap}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}.gap16{gap:16px}.gap24{gap:24px}.m0{margin:0}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.posrel{position:relative}.posabs{position:absolute}.round{border-radius:50%}.ohide{overflow:hidden}.bbox{box-sizing:border-box}.pointer{cursor:pointer}.w100{width:100%}.b0{border:none}"
+  );
+
+  // src/helmet.ts
+  var DESIGN_DOC_MODE_RE = /<meta\b[^>]*\bname\s*=\s*["']design_doc_mode["'][^>]*\b(?:content|value)\s*=\s*["'](\w+)["']/i;
+  var CANVAS_BG = "#f0eee9";
+  function createHelmetManager(doc, isStreaming) {
+    const mounted = /* @__PURE__ */ new Set();
+    const live = /* @__PURE__ */ new Map();
+    let designDocMode = null;
+    let canvasStyleEl = null;
+    function postDesignMode(mode) {
+      if (window.parent === window) return;
+      try {
+        window.parent.postMessage({ type: "__dc_design_mode", mode }, "*");
+      } catch {
+      }
+    }
+    function setDesignDocMode(mode) {
+      if (mode === designDocMode) return;
+      designDocMode = mode;
+      postDesignMode(mode);
+      if (mode === "canvas") {
+        doc.documentElement.setAttribute("data-dc-canvas", "");
+        canvasStyleEl = doc.createElement("style");
+        canvasStyleEl.setAttribute("data-dc-canvas", "");
+        canvasStyleEl.textContent = `html,body{background:${CANVAS_BG}}#dc-root>.sc-host{position:relative}`;
+        doc.head.appendChild(canvasStyleEl);
+      } else {
+        doc.documentElement.removeAttribute("data-dc-canvas");
+        canvasStyleEl?.remove();
+        canvasStyleEl = null;
+      }
+    }
+    window.addEventListener("message", (e) => {
+      if (!designDocMode || (e.data && e.data.type) !== "__dc_probe") return;
+      postDesignMode(designDocMode);
+    });
+    function compile(node) {
+      const raw = [...node.children];
+      const helmetClosed = node.nextSibling != null || node.parentNode?.nextSibling != null;
+      if (node.hasAttribute("data-dc-atomics") && !mounted.has("__dc-atomics")) {
+        mounted.add("__dc-atomics");
+        const el = doc.createElement("style");
+        el.id = "__dc-atomics";
+        el.textContent = ATOMIC_CSS;
+        doc.head.appendChild(el);
+      }
+      return (_vals, ctx) => {
+        const name = ctx && ctx.__name || "";
+        const streaming = !!(name && isStreaming(name));
+        for (let i = 0; i < raw.length; i++) {
+          const child = raw[i];
+          const tag = child.tagName;
+          const mayBePartial = streaming && !helmetClosed && i === raw.length - 1;
+          if (tag === "SCRIPT") {
+            if (mayBePartial) continue;
+            const key = "SCRIPT|" + (child.getAttribute("src") || child.textContent || "");
+            if (mounted.has(key)) continue;
+            mounted.add(key);
+            const el = doc.createElement("script");
+            for (const { name: an, value } of [...child.attributes])
+              el.setAttribute(an, value);
+            if (child.textContent) el.textContent = child.textContent;
+            doc.head.appendChild(el);
+          } else if (tag === "LINK" || tag === "META") {
+            if (mayBePartial) continue;
+            const key = tag + "|" + (child.getAttribute("href") || child.getAttribute("src") || child.outerHTML);
+            if (mounted.has(key)) continue;
+            mounted.add(key);
+            doc.head.appendChild(child.cloneNode(true));
+          } else {
+            const key = name + "|" + i;
+            let el = live.get(key);
+            if (!el || el.tagName !== tag) {
+              if (el) el.remove();
+              el = doc.createElement(tag.toLowerCase());
+              live.set(key, el);
+              doc.head.appendChild(el);
+            }
+            for (const { name: an, value } of [...child.attributes]) {
+              if (el.getAttribute(an) !== value) el.setAttribute(an, value);
+            }
+            if (el.textContent !== child.textContent)
+              el.textContent = child.textContent;
+          }
+        }
+        return null;
+      };
+    }
+    return { compile, setDesignDocMode };
+  }
+
+  // src/pseudo.ts
+  function createPseudoSheet(doc) {
+    let el = null;
+    const cache = /* @__PURE__ */ new Map();
+    let n = 0;
+    return (pseudo, css) => {
+      const k = pseudo + "|" + css;
+      const hit = cache.get(k);
+      if (hit) return hit;
+      if (!el) {
+        el = doc.createElement("style");
+        doc.head.appendChild(el);
+      }
+      const cls = "scp" + (n++).toString(36);
+      const sel = pseudo === "before" || pseudo === "after" ? "." + cls + "::" + pseudo : "." + cls + ":" + pseudo;
+      el.sheet.insertRule(sel + "{" + css + "}", el.sheet.cssRules.length);
+      cache.set(k, cls);
+      return cls;
+    };
+  }
+
+  // src/registry.ts
+  function createRegistry() {
+    const entries = /* @__PURE__ */ Object.create(null);
+    function get(name) {
+      return entries[name] || (entries[name] = {
+        html: "",
+        tpl: null,
+        Logic: null,
+        jsStreaming: false,
+        htmlStreaming: false,
+        ver: 0,
+        subs: /* @__PURE__ */ new Set(),
+        fetched: false
+      });
+    }
+    function bump(name) {
+      const r = get(name);
+      r.ver++;
+      for (const fn of r.subs) fn();
+    }
+    return {
+      entries,
+      get,
+      bump,
+      bumpAll() {
+        for (const n in entries) bump(n);
+      }
+    };
+  }
+
+  // src/runtime.ts
+  var COMPONENT_DIR = ".";
+  function createRuntime(doc = document) {
+    const registry = createRegistry();
+    const pseudoClass = createPseudoSheet(doc);
+    const helmet = createHelmetManager(
+      doc,
+      (name) => registry.get(name).htmlStreaming
+    );
+    const external = createExternalModules(() => registry.bumpAll());
+    const factory = createComponentFactory(registry, ensureFetched);
+    const host = {
+      component: (name) => factory.getDC(name),
+      placeholder: (props) => h(Placeholder, props),
+      helmet: (node) => helmet.compile(node),
+      loadExternal: (kind, url) => external.load(kind, url),
+      resolveExternal: (url, name) => external.resolve(url, name),
+      resolveExternalGlobal: (url, name) => external.resolveGlobal(url, name),
+      resolveExternalError: (url, name) => external.getError(url, name),
+      pseudoClass
+    };
+    function ensureFetched(name) {
+      const r = registry.get(name);
+      if (r.fetched) return;
+      r.fetched = true;
+      const url = COMPONENT_DIR + "/" + encodeURIComponent(name) + ".dc.html";
+      fetch(url).then((res) => {
+        if (!res.ok) {
+          console.error(
+            "[dc-runtime] sibling fetch for <" + name + "/> failed:",
+            url,
+            "returned",
+            res.status,
+            "\u2014 the reference renders as an empty placeholder."
+          );
+          return "";
+        }
+        return res.text();
+      }).then((t) => {
+        if (!t) return;
+        const parsed = parseDcText(t);
+        if (!parsed) {
+          console.error(
+            "[dc-runtime] sibling fetch for <" + name + "/>:",
+            url,
+            "has no <x-dc> block \u2014 not a Design Component."
+          );
+          return;
+        }
+        if (parsed.props) r.propsMeta = parsed.props;
+        if (parsed.preview) r.preview = parsed.preview;
+        if (parsed.template && !r.html) updateHtml(name, parsed.template);
+        if (parsed.js && !r.Logic) updateJs(name, parsed.js);
+      }).catch(
+        (e) => console.error(
+          "[dc-runtime] sibling fetch for <" + name + "/> threw:",
+          url,
+          e
+        )
+      );
+    }
+    let rootName = null;
+    function updateHtml(name, html) {
+      const r = registry.get(name);
+      r.html = html;
+      if (name === rootName) {
+        const mode = DESIGN_DOC_MODE_RE.exec(html)?.[1] ?? null;
+        if (mode || !r.htmlStreaming) helmet.setDesignDocMode(mode);
+      }
+      try {
+        r.tpl = compileTemplate(html, host);
+      } catch (e) {
+        console.error("[dc-runtime] template compile FAILED for", name, e);
+      }
+      registry.bump(name);
+    }
+    function updateJs(name, src) {
+      const r = registry.get(name);
+      const seq = r.jsSeq = (r.jsSeq || 0) + 1;
+      try {
+        const Cls = evalDcLogic(src);
+        if (r.jsSeq !== seq) return;
+        if (typeof Cls !== "function") {
+          r.logicError = name + ".dc.html: <script data-dc-script> must define `class Component extends DCLogic`";
+        } else {
+          r.logicError = null;
+          r.Logic = Cls;
+        }
+      } catch (e) {
+        if (r.jsSeq !== seq) return;
+        console.error(
+          "[dc-runtime] logic class eval FAILED for",
+          name,
+          "\u2014 the template renders with props only.",
+          e
+        );
+        r.logicError = name + ": " + (e instanceof Error && e.message ? e.message : String(e));
+      }
+      registry.bump(name);
+    }
+    function setStreaming(name, kind, on) {
+      const r = registry.get(name);
+      if (kind === "html") r.htmlStreaming = !!on;
+      else r.jsStreaming = !!on;
+      let any = false;
+      for (const n in registry.entries) {
+        const e = registry.entries[n];
+        if (e && (e.htmlStreaming || e.jsStreaming)) {
+          any = true;
+          break;
+        }
+      }
+      doc.documentElement.classList.toggle("sc-dc-streaming", any);
+      registry.bump(name);
+    }
+    function dcUpdate(name, kind, content, streaming) {
+      if (streaming) registry.get(name).fetched = true;
+      if (kind === "html") {
+        setStreaming(name, "html", !!streaming);
+        updateHtml(name, content);
+      } else if (kind === "js") {
+        setStreaming(name, "js", !!streaming);
+        if (!streaming) updateJs(name, content);
+      } else if (kind === "props") {
+        const { props, preview } = parseDataProps(content);
+        const r = registry.get(name);
+        r.propsMeta = props ?? void 0;
+        r.preview = preview;
+        registry.bump(name);
+      }
+    }
+    function setProps(name, overrides) {
+      registry.get(name).propOverrides = overrides && typeof overrides === "object" ? { ...overrides } : null;
+      registry.bump(name);
+    }
+    function adoptParsed(name, parsed) {
+      if (!parsed) return;
+      const r = registry.get(name);
+      if (parsed.props) r.propsMeta = parsed.props;
+      if (parsed.preview) r.preview = parsed.preview;
+      if (parsed.template) updateHtml(name, parsed.template);
+      if (parsed.js) updateJs(name, parsed.js);
+    }
+    return {
+      registry,
+      getDC: factory.getDC,
+      updateHtml,
+      updateJs,
+      dcUpdate,
+      setProps,
+      adoptParsed,
+      setRootName: (name) => {
+        rootName = name;
+      },
+      markFetched: (name) => {
+        registry.get(name).fetched = true;
+      },
+      annotatedTemplate: (name) => {
+        const r = registry.get(name);
+        return r.tpl && r.tpl.__annotated || null;
+      },
+      templateSource: (name) => registry.get(name).html || null,
+      StreamableLogic
+    };
+  }
+
+  // src/index.ts
+  var REACT_URL = "https://unpkg.com/react@18.3.1/umd/react.production.min.js";
+  var REACT_SRI = "sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z";
+  var REACT_DOM_URL = "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js";
+  var REACT_DOM_SRI = "sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1";
+  function hideRawTemplate() {
+    const s = document.createElement("style");
+    s.textContent = "x-dc{display:none!important}";
+    document.head.appendChild(s);
+  }
+  function loadScript(src, integrity) {
+    return new Promise((resolve2, reject) => {
+      //! nosemgrep: create-script-element
+      const s = document.createElement("script");
+      s.src = src;
+      s.integrity = integrity;
+      s.crossOrigin = "anonymous";
+      s.async = false;
+      s.onload = () => resolve2();
+      s.onerror = () => reject(new Error(`failed to load ${src}`));
+      document.head.appendChild(s);
+    });
+  }
+  function loadReactUmd() {
+    const w = window;
+    if (w.React && w.ReactDOM) return Promise.resolve();
+    return Promise.all([
+      loadScript(REACT_URL, REACT_SRI),
+      loadScript(REACT_DOM_URL, REACT_DOM_SRI)
+    ]).then(() => void 0);
+  }
+  function init() {
+    const runtime = createRuntime(document);
+    let rootName = "Root";
+    const baseCss = document.createElement("style");
+    baseCss.textContent = BASE_CSS;
+    document.head.prepend(baseCss);
+    const notifyHost = () => {
+      if (window.parent === window) return;
+      const r = runtime.registry.entries[rootName];
+      try {
+        window.parent.postMessage(
+          {
+            type: "__dc_booted",
+            rootName,
+            propsMeta: r && r.propsMeta || null,
+            preview: r && r.preview || null
+          },
+          "*"
+        );
+      } catch {
+      }
+    };
+    const api = {
+      __dcUpdate: (name, kind, content, streaming) => {
+        runtime.dcUpdate(name, kind, content, streaming);
+        if (name === rootName && !streaming && kind === "props") notifyHost();
+      },
+      __dcSetProps: (name, overrides) => runtime.setProps(name, overrides),
+      /** Name of the component currently mounted as the page root — DC tools
+       *  push their template-stream here when targeting "the open page". */
+      __dcRootName: () => rootName,
+      /** Editor bridge — the encoded, `data-dc-tpl`-annotated template source.
+       *  The host editor parses this into its own template DOM so it can map a
+       *  rendered node (carrying the same `data-dc-tpl`) back to the source
+       *  node that emitted it. Returns the encoded form (`<sc-comp>`,
+       *  `sc-camel-*` attrs); the editor decodes on serialize. */
+      __dcAnnotatedTemplate: (name) => runtime.annotatedTemplate(name),
+      /** Editor bridge — the *original* (decoded) template source. */
+      __dcTemplateSource: (name) => runtime.templateSource(name),
+      __dcBoot: () => {
+        rootName = boot(runtime, document) ?? rootName;
+        notifyHost();
+      },
+      __dcRegistry: runtime.registry.entries,
+      getDC: (name) => runtime.getDC(name),
+      // `DCLogic` is the documented base class name; `StreamableLogic` is the
+      // implementation alias kept for any project that already references it.
+      DCLogic: runtime.StreamableLogic,
+      StreamableLogic: runtime.StreamableLogic
+    };
+    Object.assign(window, api);
+    if (document.readyState !== "loading") api.__dcBoot();
+    else document.addEventListener("DOMContentLoaded", () => api.__dcBoot());
+  }
+  hideRawTemplate();
+  loadReactUmd().then(init).catch((err) => {
+    console.error("[dc] failed to load React or boot:", err);
+    throw err;
+  });
+})();
+"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e9edee;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:#16242b}
+</style>
+</helmet>
+
+<div style="width:max-content;padding:48px;background:#e9edee;">
+
+  <!-- ===== HEADER ===== -->
+  <div style="width:1235px;display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:22px;height:22px;background:#0F4761;border-radius:5px;"></div>
+        <span style="font-size:12px;font-weight:700;letter-spacing:0.16em;color:#3f5560;">MINDBERG.AI&nbsp;&nbsp;×&nbsp;&nbsp;PAYTR</span>
+      </div>
+      <h1 style="font-size:27px;font-weight:700;letter-spacing:-0.01em;color:#0F4761;line-height:1.15;">PAYTR Üye İşyeri Risk Skorlama Modeli</h1>
+      <p style="font-size:16px;font-weight:500;color:#43585f;margin-top:5px;">Canlıya Alma Proje Planı · Mindberg.ai Tarafından Sunulacak Hizmetler</p>
+    </div>
+    <div style="text-align:right;padding-bottom:4px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;color:#7c8d94;margin-bottom:6px;">PROJE TAKVİMİ</div>
+      <div style="font-size:18px;font-weight:700;color:#16242b;">{{ rangeLabel }}</div>
+      <div style="font-size:13px;color:#5d7079;margin-top:3px;">{{ totalLabel }} · başlangıç bugün ({{ todayLabel }})</div>
+    </div>
+  </div>
+
+  <!-- ===== CHART CARD ===== -->
+  <div style="width:1235px;background:#ffffff;border:1px solid #d4dbde;border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(15,71,97,0.08);display:flex;">
+
+    <!-- ---- LEFT PANEL ---- -->
+    <div style="width:500px;flex:none;border-right:2px solid #0F4761;">
+      <!-- header -->
+      <div style="height:30px;background:#0F4761;display:flex;align-items:center;padding-left:16px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;color:#bcd3de;">PROJE İŞ KALEMLERİ</span>
+      </div>
+      <div style="height:28px;background:#f1f5f6;border-bottom:1px solid #dde4e7;display:grid;grid-template-columns:46px 212px 86px 78px 78px;align-items:center;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:0.06em;color:#5d7079;text-align:center;">#</span>
+        <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#5d7079;padding-left:4px;">FAZ / HİZMET</span>
+        <span style="font-size:10px;font-weight:700;letter-spacing:0.06em;color:#5d7079;text-align:center;">SÜRE</span>
+        <span style="font-size:10px;font-weight:700;letter-spacing:0.06em;color:#5d7079;text-align:right;padding-right:10px;">BAŞLANGIÇ</span>
+        <span style="font-size:10px;font-weight:700;letter-spacing:0.06em;color:#5d7079;text-align:right;padding-right:14px;">BİTİŞ</span>
+      </div>
+      <!-- rows -->
+      <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="4">
+        <div style="height:72px;border-bottom:1px solid #edf1f2;display:grid;grid-template-columns:46px 212px 86px 78px 78px;align-items:center;">
+          <span style="font-size:15px;font-weight:700;color:#aebcc2;text-align:center;">{{ t.no }}</span>
+          <div style="padding-left:4px;padding-right:10px;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:0.07em;color:#9aa9af;margin-bottom:3px;">RİSK SKORLAMA MODELİ</div>
+            <div style="font-size:13px;font-weight:600;color:#1b2a31;line-height:1.25;">{{ t.name }}</div>
+          </div>
+          <div style="text-align:center;">
+            <span style="display:inline-block;font-size:12px;font-weight:700;color:#0F4761;background:#e7eef1;border-radius:20px;padding:3px 10px;">{{ t.durLabel }}</span>
+          </div>
+          <span style="font-size:12.5px;font-weight:600;color:#34474e;text-align:right;padding-right:10px;">{{ t.startStr }}</span>
+          <span style="font-size:12.5px;font-weight:600;color:#34474e;text-align:right;padding-right:14px;">{{ t.endStr }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- ---- RIGHT (TIMELINE) PANEL ---- -->
+    <div style="flex:none;width:735px;position:relative;">
+      <!-- month band -->
+      <div style="height:30px;display:flex;background:#0F4761;">
+        <sc-for list="{{ segs }}" as="s" hint-placeholder-count="5">
+          <div style="width:{{ s.px }}px;display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,0.16);">
+            <span style="font-size:11px;font-weight:700;letter-spacing:0.04em;color:#ffffff;">{{ s.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <!-- week ticks -->
+      <div style="height:28px;display:flex;background:#f1f5f6;border-bottom:1px solid #dde4e7;">
+        <sc-for list="{{ weeks }}" as="w" hint-placeholder-count="15">
+          <div style="width:49px;flex:none;display:flex;align-items:center;justify-content:center;border-right:1px solid #e2e8ea;{{ w.bg }}">
+            <span style="font-size:9.5px;font-weight:600;color:{{ w.labelColor }};">{{ w.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <!-- body -->
+      <div style="position:relative;height:{{ bodyH }}px;background-image:repeating-linear-gradient(to right,#eef2f3 0px,#eef2f3 1px,transparent 1px,transparent 49px),repeating-linear-gradient(to bottom,transparent 0px,transparent 71px,#edf1f2 71px,transparent 72px);">
+
+        <!-- today line -->
+        <sc-if value="{{ todayInRange }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;top:0;bottom:0;left:{{ todayLeft }}px;width:0;border-left:2px dashed #C8503B;z-index:4;"></div>
+          <div style="position:absolute;top:6px;left:{{ todayLeft }}px;transform:translateX(-50%);background:#C8503B;color:#fff;font-size:9px;font-weight:700;letter-spacing:0.05em;padding:2px 7px;border-radius:20px;white-space:nowrap;z-index:5;">BUGÜN</div>
+        </sc-if>
+
+        <!-- izin haftası bantları -->
+        <sc-for list="{{ offBands }}" as="ob" hint-placeholder-count="3">
+          <div style="position:absolute;top:0;bottom:0;left:{{ ob.left }}px;width:{{ ob.width }}px;background:rgba(198,128,58,0.09);border-left:1px solid rgba(198,128,58,0.3);border-right:1px solid rgba(198,128,58,0.3);z-index:2;">
+            <div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);background:#C6803A;color:#fff;font-size:9px;font-weight:700;letter-spacing:0.05em;padding:2px 7px;border-radius:20px;white-space:nowrap;z-index:5;">İZİN</div>
+          </div>
+        </sc-for>
+
+        <!-- task bars -->
+        <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="4">
+          <div style="position:absolute;left:0;right:0;top:{{ t.rowTop }}px;height:72px;">
+            <sc-if value="{{ t.isBar }}" hint-placeholder-val="{{ true }}">
+              <div style="position:absolute;top:23px;left:{{ t.barLeft }}px;width:{{ t.barWidth }}px;height:26px;background:#0F4761;border-radius:5px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(15,71,97,0.28);">
+                <span style="color:#ffffff;font-size:11.5px;font-weight:600;letter-spacing:0.02em;">{{ t.durLabel }}</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ t.isMilestone }}" hint-placeholder-val="{{ true }}">
+              <div style="position:absolute;top:29px;left:{{ t.msLeft }}px;">
+                <div style="width:15px;height:15px;background:#C6803A;transform:translateX(-50%) rotate(45deg);box-shadow:0 1px 3px rgba(120,70,20,0.35);"></div>
+                <span style="position:absolute;left:12px;top:0px;white-space:nowrap;font-size:11px;font-weight:700;color:#9a6321;">{{ t.durLabel }} · Mutabakat</span>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div style="width:1235px;display:flex;align-items:center;gap:28px;margin-top:16px;padding-left:2px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:26px;height:13px;background:#0F4761;border-radius:3px;"></div>
+      <span style="font-size:12.5px;color:#43585f;font-weight:500;">Faz / Çalışma süresi</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;">
+      <div style="width:13px;height:13px;background:#C6803A;transform:rotate(45deg);"></div>
+      <span style="font-size:12.5px;color:#43585f;font-weight:500;">Kilometre taşı (sunum &amp; mutabakat)</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:0;height:15px;border-left:2px dashed #C8503B;"></div>
+      <span style="font-size:12.5px;color:#43585f;font-weight:500;">Bugün</span>
+    </div>
+    <div style="margin-left:auto;font-size:11.5px;color:#8493999;color:#7c8d94;font-style:italic;">Fazlar ardışıktır; her faz bir öncekinin tamamlanmasıyla başlar.</div>
+  </div>
+
+  <!-- ===== NOTES ===== -->
+  <sc-if value="{{ showDescriptions }}" hint-placeholder-val="{{ true }}">
+    <div style="width:1235px;margin-top:30px;background:#ffffff;border:1px solid #d4dbde;border-radius:12px;padding:26px 30px;">
+      <div style="font-size:13px;font-weight:700;letter-spacing:0.1em;color:#0F4761;margin-bottom:18px;">AÇIKLAMALAR &amp; BAĞIMLILIKLAR</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px 40px;">
+        <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="4">
+          <div style="display:flex;gap:14px;">
+            <div style="flex:none;width:30px;height:30px;border-radius:7px;background:#e7eef1;color:#0F4761;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;">{{ t.no }}</div>
+            <div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px;">
+                <span style="font-size:14px;font-weight:700;color:#1b2a31;">{{ t.name }}</span>
+                <span style="font-size:11px;font-weight:600;color:#7c8d94;">{{ t.rangeStr }}</span>
+              </div>
+              <p style="font-size:12.5px;line-height:1.55;color:#4a5d64;text-wrap:pretty;">{{ t.desc }}</p>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:22px;padding-top:16px;border-top:1px solid #edf1f2;font-size:11.5px;line-height:1.5;color:#7c8d94;text-wrap:pretty;">{{ footnote }}</div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1330,&quot;height&quot;:920},&quot;startDate&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-06-24&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showDescriptions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const MS = 86400000;
+    const monthsLong = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    const monthsShort = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+    const parse = (s) => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+    const add = (d,n) => new Date(d.getTime() + n*MS);
+    const off = (d,base) => Math.round((d.getTime() - base.getTime())/MS);
+    const sShort = (d) => d.getDate() + ' ' + monthsShort[d.getMonth()];
+    const sFull = (d) => d.getDate() + ' ' + monthsShort[d.getMonth()] + ' ' + d.getFullYear();
+
+    const startDate = this.props.startDate ?? '2026-06-24';
+    const showDescriptions = this.props.showDescriptions ?? true;
+    const start = parse(startDate);
+
+    // --- izin haftaları (ekip yıllık izni) — Pazartesi başlangıçları ---
+    const offWeekStarts = ['2026-07-20','2026-07-27','2026-08-17'].map(parse);
+    const isOffDay = (d) => offWeekStarts.some(w => { const delta = off(d, w); return delta >= 0 && delta <= 4; });
+
+    // --- iş günü (hafta içi) yardımcıları ---
+    const isWeekend = (d) => { const g = d.getDay(); return g === 0 || g === 6; };
+    const isSkip = (d) => isWeekend(d) || isOffDay(d);
+    const nextBiz = (d) => { let x = add(d,1); while (isSkip(x)) x = add(x,1); return x; };
+    const firstBiz = (d) => { let x = new Date(d); while (isSkip(x)) x = add(x,1); return x; };
+    const endBiz = (s, n) => { let e = new Date(s); let rem = n - 1; while (rem > 0) { e = nextBiz(e); rem--; } return e; };
+
+    const raw = [
+      { name:'Veri Analizi ve Hedef Değişken Opsiyonlarının Belirlenmesi', durLabel:'5 Hafta', bdays:25, type:'bar',
+        desc:'Belirtilen 5 haftalık (25 iş günü) süre, PAYTR tarafından Mindberg.ai\u2019a, skorlama modelini geliştirme sürecinde kullanılabilecek tüm veri setlerine, bu verilerle ilgili açıklamalara ve Mindberg.ai\u2019ın kullanacağı veri bilimi yazılım ve kütüphanelerine erişiminin ardından başlar.' },
+      { name:'Model Geliştirme', durLabel:'5 Hafta', bdays:25, type:'bar',
+        desc:'Hedef Değişken Opsiyonları üzerinde PAYTR ile mutabakatın ardından başlar.' },
+      { name:'Modelin Sunumu ve Mutabakat', durLabel:'1 Gün', bdays:1, type:'milestone',
+        desc:'Mindberg.ai tarafından farklı hedef değişkenler üzerinde geliştirilen modeller sunulur ve nihai modele karar verilir.' },
+      { name:'Skorlama Yazılımının Hazırlanması ve Teslimi', durLabel:'4 Hafta', bdays:20, type:'bar',
+        desc:'Bu çalışma, nihai modele karar verilmesinin ardından başlayabilir ve PAYTR sistemlerine entegrasyonu için PAYTR ve Mindberg.ai ekiplerinin ortak eforu gerekmektedir.' },
+    ];
+
+    // ardışık planlama — iş günleri üzerinden, hafta sonları atlanır
+    let cursor = firstBiz(start);
+    const sched = raw.map((t,i) => {
+      const s = new Date(cursor);
+      const e = endBiz(s, t.bdays);
+      cursor = nextBiz(e);
+      return { ...t, idx:i, no:String(i+1).padStart(2,'0'), start:s, end:e };
+    });
+
+    const firstStart = sched[0].start;
+    const lastEnd = sched[sched.length-1].end;
+
+    // timeline bounds: Monday before first start .. Sunday after last end
+    const back = (firstStart.getDay() + 6) % 7;
+    const tStart = add(firstStart, -back);
+    const fwd = (7 - lastEnd.getDay()) % 7; // days to Sunday
+    const tEnd = add(lastEnd, fwd);
+    const totalDays = off(tEnd, tStart) + 1;
+    const DAY_PX = 7;
+
+    const tasks = sched.map(t => ({
+      no: t.no,
+      name: t.name,
+      durLabel: t.durLabel,
+      desc: t.desc,
+      startStr: sShort(t.start),
+      endStr: sShort(t.end),
+      rangeStr: sShort(t.start) + ' – ' + sShort(t.end),
+      isBar: t.type === 'bar',
+      isMilestone: t.type === 'milestone',
+      barLeft: off(t.start, tStart) * DAY_PX,
+      barWidth: (off(t.end, tStart) - off(t.start, tStart) + 1) * DAY_PX,
+      msLeft: off(t.start, tStart) * DAY_PX + Math.round(DAY_PX/2),
+      rowTop: t.idx * 72,
     }));
 
-    const extResEl = document.querySelector('script[type="__bundler/ext_resources"]');
-    const extResources = extResEl ? JSON.parse(extResEl.textContent) : [];
-    const resourceMap = {};
-    for (const entry of extResources) {
-      if (blobUrls[entry.uuid]) resourceMap[entry.id] = blobUrls[entry.uuid];
+    // weeks
+    const weeks = [];
+    for (let d = new Date(tStart); d <= tEnd; d = add(d, 7)) {
+      const isOff = offWeekStarts.some(w => off(d, w) === 0);
+      weeks.push({ label: sShort(d), isOff, bg: isOff ? 'background:#fff3cd;' : '', labelColor: isOff ? '#9a6321' : '#6a7d84' });
     }
 
-    setStatus('Rendering...');
-    for (const uuid of uuids) template = template.split(uuid).join(blobUrls[uuid]);
-
-    // Strip integrity + crossorigin — blob URLs from a file:// document inherit
-    // a null origin, so crossorigin forces a CORS fetch that SRI then rejects.
-    // The manifest bytes are ours; SRI protects against CDN compromise, not this.
-    template = template.replace(/\s+integrity="[^"]*"/gi, '').replace(/\s+crossorigin="[^"]*"/gi, '');
-
-    const resourceScript = '<script>window.__resources = ' +
-      JSON.stringify(resourceMap).split('</' + 'script>').join('<\\/' + 'script>') +
-      ';</' + 'script>';
-    // Inject after <head> so the DOCTYPE stays first; prepending the script
-    // would push the parser into quirks mode. DOMParser always emits a <head>
-    // (synthesizing one if the source HTML omitted it) but may carry
-    // attributes through, so match the full opening tag. slice() rather than
-    // replace() keeps us clear of $-pattern substitution in resourceScript.
-    const headOpen = template.match(/<head[^>]*>/i);
-    if (headOpen) {
-      const i = headOpen.index + headOpen[0].length;
-      template = template.slice(0, i) + resourceScript + template.slice(i);
+    // month segments
+    const segs = [];
+    let c = new Date(tStart);
+    while (c <= tEnd) {
+      const y = c.getFullYear(), m = c.getMonth();
+      const monthEnd = new Date(y, m+1, 0);
+      const segEnd = monthEnd < tEnd ? monthEnd : tEnd;
+      const days = off(segEnd, c) + 1;
+      segs.push({ label: monthsLong[m], px: days * DAY_PX });
+      c = add(segEnd, 1);
     }
 
-    // Parse the template and swap the root element. Scripts inserted via
-    // DOMParser/replaceWith are inert per spec — re-create each with
-    // createElement so they execute, awaiting onload for src scripts to
-    // preserve ordering (React before ReactDOM before Babel before text/babel).
-    const doc = new DOMParser().parseFromString(template, 'text/html');
-    document.documentElement.replaceWith(doc.documentElement);
-    const dead = Array.from(document.scripts);
-    for (const old of dead) {
-      const s = document.createElement('script');
-      for (const a of old.attributes) s.setAttribute(a.name, a.value);
-      s.textContent = old.textContent;
-      // text/babel scripts with a src: fetch and inline. transformScriptTags
-      // does XHR against the src, but blob:null/ from a file:// origin is
-      // silently dropped. Inlining makes it a plain inline babel script,
-      // which transformScriptTags handles unconditionally.
-      if ((s.type === 'text/babel' || s.type === 'text/jsx') && s.src) {
-        const r = await fetch(s.src);
-        s.textContent = await r.text();
-        s.removeAttribute('src');
-      }
-      const p = s.src ? new Promise(function(r) { s.onload = s.onerror = r; }) : null;
-      old.replaceWith(s);
-      if (p) await p;
-    }
-    // Babel standalone auto-transforms type=text/babel on DOMContentLoaded,
-    // which fired before we swapped the document. Trigger manually if present.
-    if (window.Babel && typeof window.Babel.transformScriptTags === 'function') {
-      window.Babel.transformScriptTags();
-    }
-  } catch (err) {
-    setStatus('Error unpacking: ' + err.message);
-    console.error('Bundle unpack error:', err);
+    // today
+    const now = new Date();
+    const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayInRange = todayMid >= tStart && todayMid <= tEnd;
+    const todayLeft = off(todayMid, tStart) * DAY_PX;
+
+    // izin haftası bantları (görsel)
+    const offBands = offWeekStarts.map(w => {
+      const wEnd = add(w, 4);
+      if (wEnd < tStart || w > tEnd) return null;
+      const bStart = w < tStart ? tStart : w;
+      const bEnd = wEnd > tEnd ? tEnd : wEnd;
+      return { left: off(bStart, tStart) * DAY_PX, width: (off(bEnd, tStart) - off(bStart, tStart) + 1) * DAY_PX };
+    }).filter(Boolean);
+
+    const totalProjectDays = off(lastEnd, firstStart) + 1;
+    const totalBiz = sched.reduce((a,t) => a + t.bdays, 0);
+
+    return {
+      tasks, weeks, segs, offBands,
+      bodyH: tasks.length * 72,
+      todayInRange, todayLeft,
+      showDescriptions,
+      rangeLabel: sFull(firstStart) + ' – ' + sFull(lastEnd),
+      totalLabel: Math.round(totalBiz/5) + ' iş haftası · ' + totalBiz + ' iş günü',
+      todayLabel: sFull(todayMid),
+      footnote: 'Tarihler, başlangıç olarak bugün (' + sFull(todayMid) + ') alınarak iş günleri (hafta içi) üzerinden hesaplanmıştır; hafta sonları (Cmt–Paz) süreye dâhil edilmemiştir. 5 Hafta = 25 iş günü, 4 Hafta = 20 iş günü olarak alınmıştır. Her faz, bir önceki fazın tamamlanmasını izleyen ilk iş gününde başlar; resmî tatiller ve PAYTR kaynaklı veri/erişim gecikmeleri başlangıç tarihlerini öteleyebilir. Ekip yıllık izin haftaları (20 Temmuz, 27 Temmuz ve 17 Ağustos 2026 haftaları) iş günü hesabına ve Gantt takvimine dâhil edilmemiştir.',
+    };
   }
-});
+}
+</script>
 
-  </script>
 
-  <script type="__bundler/manifest">
-{"f2aec28a-0deb-452a-a3b6-ad22b2cc2b23":{"mime":"text/javascript","compressed":true,"data":"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"}}
-  </script>
-
-  <script type="__bundler/ext_resources">
-[]
-  </script>
-
-  <script type="__bundler/template">
-"<!DOCTYPE html>\n<html><head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<script src=\"f2aec28a-0deb-452a-a3b6-ad22b2cc2b23\"><\u002Fscript>\n<\u002Fhead>\n<body>\n<x-dc>\n<helmet>\n\n<style>\n  *{box-sizing:border-box;margin:0;padding:0}\n  body{background:#e9edee;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:#16242b}\n<\u002Fstyle>\n<\u002Fhelmet>\n\n<div style=\"width:max-content;padding:48px;background:#e9edee;\">\n\n  <!-- ===== HEADER ===== -->\n  <div style=\"width:1235px;display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;\">\n    <div>\n      <div style=\"display:flex;align-items:center;gap:10px;margin-bottom:12px;\">\n        <div style=\"width:22px;height:22px;background:#0F4761;border-radius:5px;\"><\u002Fdiv>\n        <span style=\"font-size:12px;font-weight:700;letter-spacing:0.16em;color:#3f5560;\">MINDBERG.AI&nbsp;&nbsp;×&nbsp;&nbsp;PAYTR<\u002Fspan>\n      <\u002Fdiv>\n      <h1 style=\"font-size:27px;font-weight:700;letter-spacing:-0.01em;color:#0F4761;line-height:1.15;\">PAYTR Üye İşyeri Risk Skorlama Modeli<\u002Fh1>\n      <p style=\"font-size:16px;font-weight:500;color:#43585f;margin-top:5px;\">Canlıya Alma Proje Planı · Mindberg.ai Tarafından Sunulacak Hizmetler<\u002Fp>\n    <\u002Fdiv>\n    <div style=\"text-align:right;padding-bottom:4px;\">\n      <div style=\"font-size:11px;font-weight:700;letter-spacing:0.12em;color:#7c8d94;margin-bottom:6px;\">PROJE TAKVİMİ<\u002Fdiv>\n      <div style=\"font-size:18px;font-weight:700;color:#16242b;\">{{ rangeLabel }}<\u002Fdiv>\n      <div style=\"font-size:13px;color:#5d7079;margin-top:3px;\">{{ totalLabel }} · başlangıç bugün ({{ todayLabel }})<\u002Fdiv>\n    <\u002Fdiv>\n  <\u002Fdiv>\n\n  <!-- ===== CHART CARD ===== -->\n  <div style=\"width:1235px;background:#ffffff;border:1px solid #d4dbde;border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(15,71,97,0.08);display:flex;\">\n\n    <!-- ---- LEFT PANEL ---- -->\n    <div style=\"width:500px;flex:none;border-right:2px solid #0F4761;\">\n      <!-- header -->\n      <div style=\"height:30px;background:#0F4761;display:flex;align-items:center;padding-left:16px;\">\n        <span style=\"font-size:10px;font-weight:700;letter-spacing:0.14em;color:#bcd3de;\">PROJE İŞ KALEMLERİ<\u002Fspan>\n      <\u002Fdiv>\n      <div style=\"height:28px;background:#f1f5f6;border-bottom:1px solid #dde4e7;display:grid;grid-template-columns:46px 212px 86px 78px 78px;align-items:center;\">\n        <span style=\"font-size:10px;font-weight:700;letter-spacing:0.06em;color:#5d7079;text-align:center;\">#<\u002Fspan>\n        <span style=\"font-size:10px;font-weight:700;letter-spacing:0.08em;color:#5d7079;padding-left:4px;\">FAZ / HİZMET<\u002Fspan>\n        <span style=\"font-size:10px;font-weight:700;letter-spacing:0.06em;color:#5d7079;text-align:center;\">SÜRE<\u002Fspan>\n        <span style=\"font-size:10px;font-weight:700;letter-spacing:0.06em;color:#5d7079;text-align:right;padding-right:10px;\">BAŞLANGIÇ<\u002Fspan>\n        <span style=\"font-size:10px;font-weight:700;letter-spacing:0.06em;color:#5d7079;text-align:right;padding-right:14px;\">BİTİŞ<\u002Fspan>\n      <\u002Fdiv>\n      <!-- rows -->\n      <sc-for list=\"{{ tasks }}\" as=\"t\" hint-placeholder-count=\"4\">\n        <div style=\"height:72px;border-bottom:1px solid #edf1f2;display:grid;grid-template-columns:46px 212px 86px 78px 78px;align-items:center;\">\n          <span style=\"font-size:15px;font-weight:700;color:#aebcc2;text-align:center;\">{{ t.no }}<\u002Fspan>\n          <div style=\"padding-left:4px;padding-right:10px;\">\n            <div style=\"font-size:9px;font-weight:700;letter-spacing:0.07em;color:#9aa9af;margin-bottom:3px;\">RİSK SKORLAMA MODELİ<\u002Fdiv>\n            <div style=\"font-size:13px;font-weight:600;color:#1b2a31;line-height:1.25;\">{{ t.name }}<\u002Fdiv>\n          <\u002Fdiv>\n          <div style=\"text-align:center;\">\n            <span style=\"display:inline-block;font-size:12px;font-weight:700;color:#0F4761;background:#e7eef1;border-radius:20px;padding:3px 10px;\">{{ t.durLabel }}<\u002Fspan>\n          <\u002Fdiv>\n          <span style=\"font-size:12.5px;font-weight:600;color:#34474e;text-align:right;padding-right:10px;\">{{ t.startStr }}<\u002Fspan>\n          <span style=\"font-size:12.5px;font-weight:600;color:#34474e;text-align:right;padding-right:14px;\">{{ t.endStr }}<\u002Fspan>\n        <\u002Fdiv>\n      <\u002Fsc-for>\n    <\u002Fdiv>\n\n    <!-- ---- RIGHT (TIMELINE) PANEL ---- -->\n    <div style=\"flex:none;width:735px;position:relative;\">\n      <!-- month band -->\n      <div style=\"height:30px;display:flex;background:#0F4761;\">\n        <sc-for list=\"{{ segs }}\" as=\"s\" hint-placeholder-count=\"5\">\n          <div style=\"width:{{ s.px }}px;display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,0.16);\">\n            <span style=\"font-size:11px;font-weight:700;letter-spacing:0.04em;color:#ffffff;\">{{ s.label }}<\u002Fspan>\n          <\u002Fdiv>\n        <\u002Fsc-for>\n      <\u002Fdiv>\n      <!-- week ticks -->\n      <div style=\"height:28px;display:flex;background:#f1f5f6;border-bottom:1px solid #dde4e7;\">\n        <sc-for list=\"{{ weeks }}\" as=\"w\" hint-placeholder-count=\"15\">\n          <div style=\"width:49px;flex:none;display:flex;align-items:center;justify-content:center;border-right:1px solid #e2e8ea;\">\n            <span style=\"font-size:9.5px;font-weight:600;color:#6a7d84;\">{{ w.label }}<\u002Fspan>\n          <\u002Fdiv>\n        <\u002Fsc-for>\n      <\u002Fdiv>\n      <!-- body -->\n      <div style=\"position:relative;height:{{ bodyH }}px;background-image:repeating-linear-gradient(to right,#eef2f3 0px,#eef2f3 1px,transparent 1px,transparent 49px),repeating-linear-gradient(to bottom,transparent 0px,transparent 71px,#edf1f2 71px,transparent 72px);\">\n\n        <!-- today line -->\n        <sc-if value=\"{{ todayInRange }}\" hint-placeholder-val=\"{{ true }}\">\n          <div style=\"position:absolute;top:0;bottom:0;left:{{ todayLeft }}px;width:0;border-left:2px dashed #C8503B;z-index:4;\"><\u002Fdiv>\n          <div style=\"position:absolute;top:6px;left:{{ todayLeft }}px;transform:translateX(-50%);background:#C8503B;color:#fff;font-size:9px;font-weight:700;letter-spacing:0.05em;padding:2px 7px;border-radius:20px;white-space:nowrap;z-index:5;\">BUGÜN<\u002Fdiv>\n        <\u002Fsc-if>\n\n        <!-- task bars -->\n        <sc-for list=\"{{ tasks }}\" as=\"t\" hint-placeholder-count=\"4\">\n          <div style=\"position:absolute;left:0;right:0;top:{{ t.rowTop }}px;height:72px;\">\n            <sc-if value=\"{{ t.isBar }}\" hint-placeholder-val=\"{{ true }}\">\n              <div style=\"position:absolute;top:23px;left:{{ t.barLeft }}px;width:{{ t.barWidth }}px;height:26px;background:#0F4761;border-radius:5px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(15,71,97,0.28);\">\n                <span style=\"color:#ffffff;font-size:11.5px;font-weight:600;letter-spacing:0.02em;\">{{ t.durLabel }}<\u002Fspan>\n              <\u002Fdiv>\n            <\u002Fsc-if>\n            <sc-if value=\"{{ t.isMilestone }}\" hint-placeholder-val=\"{{ true }}\">\n              <div style=\"position:absolute;top:29px;left:{{ t.msLeft }}px;\">\n                <div style=\"width:15px;height:15px;background:#C6803A;transform:translateX(-50%) rotate(45deg);box-shadow:0 1px 3px rgba(120,70,20,0.35);\"><\u002Fdiv>\n                <span style=\"position:absolute;left:12px;top:0px;white-space:nowrap;font-size:11px;font-weight:700;color:#9a6321;\">{{ t.durLabel }} · Mutabakat<\u002Fspan>\n              <\u002Fdiv>\n            <\u002Fsc-if>\n          <\u002Fdiv>\n        <\u002Fsc-for>\n      <\u002Fdiv>\n    <\u002Fdiv>\n  <\u002Fdiv>\n\n  <!-- ===== LEGEND ===== -->\n  <div style=\"width:1235px;display:flex;align-items:center;gap:28px;margin-top:16px;padding-left:2px;\">\n    <div style=\"display:flex;align-items:center;gap:8px;\">\n      <div style=\"width:26px;height:13px;background:#0F4761;border-radius:3px;\"><\u002Fdiv>\n      <span style=\"font-size:12.5px;color:#43585f;font-weight:500;\">Faz / Çalışma süresi<\u002Fspan>\n    <\u002Fdiv>\n    <div style=\"display:flex;align-items:center;gap:9px;\">\n      <div style=\"width:13px;height:13px;background:#C6803A;transform:rotate(45deg);\"><\u002Fdiv>\n      <span style=\"font-size:12.5px;color:#43585f;font-weight:500;\">Kilometre taşı (sunum &amp; mutabakat)<\u002Fspan>\n    <\u002Fdiv>\n    <div style=\"display:flex;align-items:center;gap:8px;\">\n      <div style=\"width:0;height:15px;border-left:2px dashed #C8503B;\"><\u002Fdiv>\n      <span style=\"font-size:12.5px;color:#43585f;font-weight:500;\">Bugün<\u002Fspan>\n    <\u002Fdiv>\n    <div style=\"margin-left:auto;font-size:11.5px;color:#8493999;color:#7c8d94;font-style:italic;\">Fazlar ardışıktır; her faz bir öncekinin tamamlanmasıyla başlar.<\u002Fdiv>\n  <\u002Fdiv>\n\n  <!-- ===== NOTES ===== -->\n  <sc-if value=\"{{ showDescriptions }}\" hint-placeholder-val=\"{{ true }}\">\n    <div style=\"width:1235px;margin-top:30px;background:#ffffff;border:1px solid #d4dbde;border-radius:12px;padding:26px 30px;\">\n      <div style=\"font-size:13px;font-weight:700;letter-spacing:0.1em;color:#0F4761;margin-bottom:18px;\">AÇIKLAMALAR &amp; BAĞIMLILIKLAR<\u002Fdiv>\n      <div style=\"display:grid;grid-template-columns:1fr 1fr;gap:20px 40px;\">\n        <sc-for list=\"{{ tasks }}\" as=\"t\" hint-placeholder-count=\"4\">\n          <div style=\"display:flex;gap:14px;\">\n            <div style=\"flex:none;width:30px;height:30px;border-radius:7px;background:#e7eef1;color:#0F4761;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;\">{{ t.no }}<\u002Fdiv>\n            <div>\n              <div style=\"display:flex;align-items:baseline;gap:8px;margin-bottom:5px;\">\n                <span style=\"font-size:14px;font-weight:700;color:#1b2a31;\">{{ t.name }}<\u002Fspan>\n                <span style=\"font-size:11px;font-weight:600;color:#7c8d94;\">{{ t.rangeStr }}<\u002Fspan>\n              <\u002Fdiv>\n              <p style=\"font-size:12.5px;line-height:1.55;color:#4a5d64;text-wrap:pretty;\">{{ t.desc }}<\u002Fp>\n            <\u002Fdiv>\n          <\u002Fdiv>\n        <\u002Fsc-for>\n      <\u002Fdiv>\n      <div style=\"margin-top:22px;padding-top:16px;border-top:1px solid #edf1f2;font-size:11.5px;line-height:1.5;color:#7c8d94;text-wrap:pretty;\">{{ footnote }}<\u002Fdiv>\n    <\u002Fdiv>\n  <\u002Fsc-if>\n\n<\u002Fdiv>\n<\u002Fx-dc>\n<script type=\"text/x-dc\" data-dc-script=\"\" data-props=\"{&quot;$preview&quot;:{&quot;width&quot;:1330,&quot;height&quot;:920},&quot;startDate&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-06-24&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showDescriptions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}\">\nclass Component extends DCLogic {\n  renderVals() {\n    const MS = 86400000;\n    const monthsLong = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];\n    const monthsShort = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];\n    const parse = (s) => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };\n    const add = (d,n) => new Date(d.getTime() + n*MS);\n    const off = (d,base) => Math.round((d.getTime() - base.getTime())/MS);\n    const sShort = (d) => d.getDate() + ' ' + monthsShort[d.getMonth()];\n    const sFull = (d) => d.getDate() + ' ' + monthsShort[d.getMonth()] + ' ' + d.getFullYear();\n\n    const startDate = this.props.startDate ?? '2026-06-24';\n    const showDescriptions = this.props.showDescriptions ?? true;\n    const start = parse(startDate);\n\n    // --- iş günü (hafta içi) yardımcıları ---\n    const isWeekend = (d) => { const g = d.getDay(); return g === 0 || g === 6; };\n    const nextBiz = (d) => { let x = add(d,1); while (isWeekend(x)) x = add(x,1); return x; };\n    const firstBiz = (d) => { let x = new Date(d); while (isWeekend(x)) x = add(x,1); return x; };\n    const endBiz = (s, n) => { let e = new Date(s); let rem = n - 1; while (rem > 0) { e = nextBiz(e); rem--; } return e; };\n\n    const raw = [\n      { name:'Veri Analizi ve Hedef Değişken Opsiyonlarının Belirlenmesi', durLabel:'5 Hafta', bdays:25, type:'bar',\n        desc:'Belirtilen 5 haftalık (25 iş günü) süre, PAYTR tarafından Mindberg.ai\\u2019a, skorlama modelini geliştirme sürecinde kullanılabilecek tüm veri setlerine, bu verilerle ilgili açıklamalara ve Mindberg.ai\\u2019ın kullanacağı veri bilimi yazılım ve kütüphanelerine erişiminin ardından başlar.' },\n      { name:'Model Geliştirme', durLabel:'5 Hafta', bdays:25, type:'bar',\n        desc:'Hedef Değişken Opsiyonları üzerinde PAYTR ile mutabakatın ardından başlar.' },\n      { name:'Modelin Sunumu ve Mutabakat', durLabel:'1 Gün', bdays:1, type:'milestone',\n        desc:'Mindberg.ai tarafından farklı hedef değişkenler üzerinde geliştirilen modeller sunulur ve nihai modele karar verilir.' },\n      { name:'Skorlama Yazılımının Hazırlanması ve Teslimi', durLabel:'4 Hafta', bdays:20, type:'bar',\n        desc:'Bu çalışma, nihai modele karar verilmesinin ardından başlayabilir ve PAYTR sistemlerine entegrasyonu için PAYTR ve Mindberg.ai ekiplerinin ortak eforu gerekmektedir.' },\n    ];\n\n    // ardışık planlama — iş günleri üzerinden, hafta sonları atlanır\n    let cursor = firstBiz(start);\n    const sched = raw.map((t,i) => {\n      const s = new Date(cursor);\n      const e = endBiz(s, t.bdays);\n      cursor = nextBiz(e);\n      return { ...t, idx:i, no:String(i+1).padStart(2,'0'), start:s, end:e };\n    });\n\n    const firstStart = sched[0].start;\n    const lastEnd = sched[sched.length-1].end;\n\n    // timeline bounds: Monday before first start .. Sunday after last end\n    const back = (firstStart.getDay() + 6) % 7;\n    const tStart = add(firstStart, -back);\n    const fwd = (7 - lastEnd.getDay()) % 7; // days to Sunday\n    const tEnd = add(lastEnd, fwd);\n    const totalDays = off(tEnd, tStart) + 1;\n    const DAY_PX = 7;\n\n    const tasks = sched.map(t => ({\n      no: t.no,\n      name: t.name,\n      durLabel: t.durLabel,\n      desc: t.desc,\n      startStr: sShort(t.start),\n      endStr: sShort(t.end),\n      rangeStr: sShort(t.start) + ' – ' + sShort(t.end),\n      isBar: t.type === 'bar',\n      isMilestone: t.type === 'milestone',\n      barLeft: off(t.start, tStart) * DAY_PX,\n      barWidth: (off(t.end, tStart) - off(t.start, tStart) + 1) * DAY_PX,\n      msLeft: off(t.start, tStart) * DAY_PX + Math.round(DAY_PX/2),\n      rowTop: t.idx * 72,\n    }));\n\n    // weeks\n    const weeks = [];\n    for (let d = new Date(tStart); d <= tEnd; d = add(d, 7)) {\n      weeks.push({ label: sShort(d) });\n    }\n\n    // month segments\n    const segs = [];\n    let c = new Date(tStart);\n    while (c <= tEnd) {\n      const y = c.getFullYear(), m = c.getMonth();\n      const monthEnd = new Date(y, m+1, 0);\n      const segEnd = monthEnd < tEnd ? monthEnd : tEnd;\n      const days = off(segEnd, c) + 1;\n      segs.push({ label: monthsLong[m], px: days * DAY_PX });\n      c = add(segEnd, 1);\n    }\n\n    // today\n    const now = new Date();\n    const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());\n    const todayInRange = todayMid >= tStart && todayMid <= tEnd;\n    const todayLeft = off(todayMid, tStart) * DAY_PX;\n\n    const totalProjectDays = off(lastEnd, firstStart) + 1;\n    const totalBiz = sched.reduce((a,t) => a + t.bdays, 0);\n\n    return {\n      tasks, weeks, segs,\n      bodyH: tasks.length * 72,\n      todayInRange, todayLeft,\n      showDescriptions,\n      rangeLabel: sFull(firstStart) + ' – ' + sFull(lastEnd),\n      totalLabel: Math.round(totalBiz/5) + ' iş haftası · ' + totalBiz + ' iş günü',\n      todayLabel: sFull(todayMid),\n      footnote: 'Tarihler, başlangıç olarak bugün (' + sFull(todayMid) + ') alınarak iş günleri (hafta içi) üzerinden hesaplanmıştır; hafta sonları (Cmt–Paz) süreye dâhil edilmemiştir. 5 Hafta = 25 iş günü, 4 Hafta = 20 iş günü olarak alınmıştır. Her faz, bir önceki fazın tamamlanmasını izleyen ilk iş gününde başlar; resmî tatiller ve PAYTR kaynaklı veri/erişim gecikmeleri başlangıç tarihlerini öteleyebilir.',\n    };\n  }\n}\n<\u002Fscript>\n\n\n<\u002Fbody><\u002Fhtml>"
-  </script>
-</body>
-</html>
+</body></html>
