@@ -86,7 +86,7 @@ function render(config) {
   const milestoneDates = RAW_MILESTONES.map(m => parse(m.date));
   const lastMilestone = milestoneDates.reduce((max, d) => d > max ? d : max, lastEnd);
   const fwd = (7 - lastMilestone.getDay()) % 7;
-  const tEnd = add(lastMilestone, fwd);
+  const tEnd = add(add(lastMilestone, fwd), 14); // 2 haftalık görsel boşluk
 
   const DAY_PX = 7;
   const SEP_H = 28; // kilometre taşları bölüm başlığı yüksekliği
