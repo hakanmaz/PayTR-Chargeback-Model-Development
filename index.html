@@ -63,15 +63,16 @@ function render(config) {
       desc: 'Hedef Değişken Opsiyonları üzerinde PAYTR ile mutabakatın ardından başlar.' },
     { name: 'Modelin Sunumu ve Mutabakat', durLabel: '1 Gün', bdays: 1, type: 'milestone',
       desc: 'Mindberg.ai tarafından farklı hedef değişkenler üzerinde geliştirilen modeller sunulur ve nihai modele karar verilir.' },
-    { name: 'Skorlama Yazılımının Hazırlanması ve Teslimi', durLabel: '4 Hafta', bdays: 20, type: 'bar',
+    { name: 'Skorlama Yazılımının Hazırlanması ve Teslimi', durLabel: '3 Hafta', bdays: 0, type: 'bar',
+      fixedStart: '2026-09-25', fixedEnd: '2026-10-15',
       desc: 'Bu çalışma, nihai modele karar verilmesinin ardından başlayabilir ve PAYTR sistemlerine entegrasyonu için PAYTR ve Mindberg.ai ekiplerinin ortak eforu gerekmektedir.' },
   ];
 
   let cursor = firstBiz(start);
   const sched = raw.map((t, i) => {
-    const s = new Date(cursor);
-    const e = endBiz(s, t.bdays);
-    cursor = nextBiz(e);
+    const s = t.fixedStart ? parse(t.fixedStart) : new Date(cursor);
+    const e = t.fixedEnd ? parse(t.fixedEnd) : endBiz(s, t.bdays);
+    if (!t.fixedStart) cursor = nextBiz(e);
     return { ...t, idx: i, no: String(i + 1).padStart(2, '0'), start: s, end: e };
   });
 
