@@ -20,6 +20,17 @@ const CONFIG = {
 // Ekip yıllık izin haftaları — Pazartesi başlangıç tarihleri
 const OFF_WEEKS = ['2026-07-20', '2026-07-27', '2026-08-17'];
 
+// Sabit tarihli kilometre taşları
+const RAW_MILESTONES = [
+  { name: 'Veri Kalitesi Kontrolü ve Çıktıları',      date: '2026-07-10' },
+  { name: 'Veri Görselleştirme ve Çıktıları',          date: '2026-07-17' },
+  { name: 'Hedef Değişken Belirleme',                  date: '2026-08-14' },
+  { name: 'Final Model Sign-Off',                      date: '2026-09-25' },
+  { name: 'Model Dokümantasyonu Teslim',               date: '2026-10-09' },
+  { name: 'Model Implementasyon Dokümanı Teslim',      date: '2026-10-09' },
+  { name: 'Skorlama Yazılımının Hazırlanması ve Teslimi', date: '2026-10-15' },
+];
+
 function render(config) {
   const MS = 86400000;
   const monthsLong = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
@@ -30,7 +41,7 @@ function render(config) {
   const sShort = (d) => d.getDate() + ' ' + monthsShort[d.getMonth()];
   const sFull = (d) => d.getDate() + ' ' + monthsShort[d.getMonth()] + ' ' + d.getFullYear();
 
-  const startDate = config.startDate || '2026-06-24';
+  const startDate = config.startDate || '2026-06-29';
   const showDescriptions = config.showDescriptions !== false;
   const start = parse(startDate);
 
@@ -69,9 +80,15 @@ function render(config) {
 
   const back = (firstStart.getDay() + 6) % 7;
   const tStart = add(firstStart, -back);
-  const fwd = (7 - lastEnd.getDay()) % 7;
-  const tEnd = add(lastEnd, fwd);
+
+  // tEnd'i hem görevlerin hem kilometre taşlarının son tarihini kapsayacak şekilde belirle
+  const milestoneDates = RAW_MILESTONES.map(m => parse(m.date));
+  const lastMilestone = milestoneDates.reduce((max, d) => d > max ? d : max, lastEnd);
+  const fwd = (7 - lastMilestone.getDay()) % 7;
+  const tEnd = add(lastMilestone, fwd);
+
   const DAY_PX = 7;
+  const SEP_H = 28; // kilometre taşları bölüm başlığı yüksekliği
 
   const tasks = sched.map(t => ({
     no: t.no,
@@ -88,6 +105,17 @@ function render(config) {
     msLeft: off(t.start, tStart) * DAY_PX + Math.round(DAY_PX / 2),
     rowTop: t.idx * 72,
   }));
+
+  const milestones = RAW_MILESTONES.map((m, i) => {
+    const date = parse(m.date);
+    return {
+      no: String(tasks.length + 1 + i).padStart(2, '0'),
+      name: m.name,
+      dateStr: sShort(date),
+      msLeft: off(date, tStart) * DAY_PX + Math.round(DAY_PX / 2),
+      rowTop: tasks.length * 72 + SEP_H + i * 72,
+    };
+  });
 
   const weeks = [];
   for (let d = new Date(tStart); d <= tEnd; d = add(d, 7)) {
@@ -120,16 +148,14 @@ function render(config) {
   }).filter(Boolean);
 
   const totalBiz = sched.reduce((a, t) => a + t.bdays, 0);
-  const bodyH = tasks.length * 72;
+  const bodyH = tasks.length * 72 + SEP_H + milestones.length * 72;
   const timelineDays = off(tEnd, tStart) + 1;
   const rightW = timelineDays * DAY_PX;
   const totalW = 500 + rightW;
-  const rangeLabel = sFull(firstStart) + ' – ' + sFull(lastEnd);
+  const rangeLabel = sFull(firstStart) + ' – ' + sFull(lastMilestone);
   const totalLabel = Math.round(totalBiz / 5) + ' iş haftası · ' + totalBiz + ' iş günü';
   const todayLabel = sFull(todayMid);
-  const footnote = 'Tarihler, başlangıç olarak bugün (' + sFull(todayMid) + ') alınarak iş günleri (hafta içi) üzerinden hesaplanmıştır; hafta sonları (Cmt–Paz) süreye dâhil edilmemiştir. 5 Hafta = 25 iş günü, 4 Hafta = 20 iş günü olarak alınmıştır. Her faz, bir önceki fazın tamamlanmasını izleyen ilk iş gününde başlar; resmî tatiller ve PAYTR kaynaklı veri/erişim gecikmeleri başlangıç tarihlerini öteleyebilir. Ekip yıllık izin haftaları (20 Temmuz, 27 Temmuz ve 17 Ağustos 2026 haftaları) iş günü hesabına ve Gantt takvimine dâhil edilmemiştir.';
-
-  const h = (s) => s; // passthrough — strings are already escaped via unicode escapes above
+  const footnote = 'Tarihler, başlangıç olarak bugün (' + sFull(todayMid) + ') alınarak iş günleri (hafta içi) üzerinden hesaplanmıştır; hafta sonları (Cmt–Paz) süreye dâhil edilmemiştir. 5 Hafta = 25 iş günü, 4 Hafta = 20 iş günü olarak alınmıştır. Her faz, bir önceki fazın tamamlanmasını izleyen ilk iş gününde başlar; resmî tatiller ve PAYTR kaynaklı veri/erişim gecikmeleri başlangıç tarihlerini öteleyebilir. Ekip yıllık izin haftaları (20 Temmuz, 27 Temmuz ve 17 Ağustos 2026 haftaları) iş günü hesabına ve Gantt takvimine dâhil edilmemiştir. Kilometre taşları sabit tarihler olup faz hesaplamalarından bağımsızdır.';
 
   return `
 <div style="width:max-content;padding:48px;background:#e9edee;">
@@ -141,8 +167,8 @@ function render(config) {
         <div style="width:22px;height:22px;background:#0F4761;border-radius:5px;"></div>
         <span style="font-size:12px;font-weight:700;letter-spacing:0.16em;color:#3f5560;">MINDBERG.AI &nbsp;&times;&nbsp; PAYTR</span>
       </div>
-      <h1 style="font-size:27px;font-weight:700;letter-spacing:-0.01em;color:#0F4761;line-height:1.15;">PAYTR Üye İşyeri Risk Skorlama Modeli</h1>
-      <p style="font-size:16px;font-weight:500;color:#43585f;margin-top:5px;">Canlıya Alma Proje Planı &middot; Mindberg.ai Tarafından Sunulacak Hizmetler</p>
+      <h1 style="font-size:27px;font-weight:700;letter-spacing:-0.01em;color:#0F4761;line-height:1.15;">PAYTR &Uuml;ye &İ;şyeri Risk Skorlama Modeli</h1>
+      <p style="font-size:16px;font-weight:500;color:#43585f;margin-top:5px;">Canl&imath;ya Alma Proje Plan&imath; &middot; Mindberg.ai Taraf&imath;ndan Sunulacak Hizmetler</p>
     </div>
     <div style="text-align:right;padding-bottom:4px;">
       <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;color:#7c8d94;margin-bottom:6px;">PROJE TAKVİMİ</div>
@@ -178,6 +204,23 @@ function render(config) {
         </div>
         <span style="font-size:12.5px;font-weight:600;color:#34474e;text-align:right;padding-right:10px;">${t.startStr}</span>
         <span style="font-size:12.5px;font-weight:600;color:#34474e;text-align:right;padding-right:14px;">${t.endStr}</span>
+      </div>`).join('')}
+      <!-- kilometre taşları bölüm başlığı -->
+      <div style="height:${SEP_H}px;background:#fdf6ee;border-bottom:1px solid #e8d5bc;border-top:2px solid #C6803A;display:flex;align-items:center;padding-left:16px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;color:#9a6321;">KİLOMETRE TAŞLARI</span>
+      </div>
+      ${milestones.map(m => `
+      <div style="height:72px;border-bottom:1px solid #edf1f2;display:grid;grid-template-columns:46px 212px 86px 78px 78px;align-items:center;background:#fffdf9;">
+        <span style="font-size:15px;font-weight:700;color:#C6803A;text-align:center;">${m.no}</span>
+        <div style="padding-left:4px;padding-right:10px;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.07em;color:#c4a882;margin-bottom:3px;">KİLOMETRE TAŞI</div>
+          <div style="font-size:13px;font-weight:600;color:#1b2a31;line-height:1.25;">${m.name}</div>
+        </div>
+        <div style="text-align:center;">
+          <span style="display:inline-block;font-size:12px;font-weight:700;color:#9a6321;background:#fdecd3;border-radius:20px;padding:3px 10px;">1 Gün</span>
+        </div>
+        <span style="font-size:12.5px;font-weight:600;color:#34474e;text-align:right;padding-right:10px;">${m.dateStr}</span>
+        <span style="font-size:12.5px;font-weight:600;color:#34474e;text-align:right;padding-right:14px;">${m.dateStr}</span>
       </div>`).join('')}
     </div>
 
@@ -221,6 +264,16 @@ function render(config) {
             <span style="position:absolute;left:12px;top:0px;white-space:nowrap;font-size:11px;font-weight:700;color:#9a6321;">${t.durLabel} &middot; Mutabakat</span>
           </div>` : ''}
         </div>`).join('')}
+        <!-- kilometre taşları bölüm ayırıcı -->
+        <div style="position:absolute;left:0;right:0;top:${tasks.length * 72}px;height:${SEP_H}px;background:#fdf6ee;border-top:2px solid #C6803A;border-bottom:1px solid #e8d5bc;z-index:3;"></div>
+        <!-- kilometre taşı noktaları -->
+        ${milestones.map(m => `
+        <div style="position:absolute;left:0;right:0;top:${m.rowTop}px;height:72px;background:#fffdf9;">
+          <div style="position:absolute;top:29px;left:${m.msLeft}px;z-index:3;">
+            <div style="width:15px;height:15px;background:#C6803A;transform:translateX(-50%) rotate(45deg);box-shadow:0 1px 3px rgba(120,70,20,0.35);"></div>
+            <span style="position:absolute;left:12px;top:0px;white-space:nowrap;font-size:10px;font-weight:700;color:#9a6321;">${m.dateStr}</span>
+          </div>
+        </div>`).join('')}
       </div>
     </div>
   </div>
@@ -233,7 +286,7 @@ function render(config) {
     </div>
     <div style="display:flex;align-items:center;gap:9px;">
       <div style="width:13px;height:13px;background:#C6803A;transform:rotate(45deg);"></div>
-      <span style="font-size:12.5px;color:#43585f;font-weight:500;">Kilometre taşı (sunum &amp; mutabakat)</span>
+      <span style="font-size:12.5px;color:#43585f;font-weight:500;">Kilometre taşı</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div style="width:0;height:15px;border-left:2px dashed #C8503B;"></div>
@@ -243,7 +296,7 @@ function render(config) {
       <div style="width:26px;height:13px;background:rgba(198,128,58,0.15);border:1px solid rgba(198,128,58,0.4);border-radius:3px;"></div>
       <span style="font-size:12.5px;color:#43585f;font-weight:500;">Ekip izin haftası</span>
     </div>
-    <div style="margin-left:auto;font-size:11.5px;color:#7c8d94;font-style:italic;">Fazlar ardışıktır; her faz bir öncekinin tamamlanmasıyla başlar.</div>
+    <div style="margin-left:auto;font-size:11.5px;color:#7c8d94;font-style:italic;">Fazlar ardışıktır; kilometre taşları sabit tarihlidir.</div>
   </div>
 
   ${showDescriptions ? `
