@@ -207,13 +207,13 @@ function render(config) {
       </div>`).join('')}
       <!-- kilometre taşları bölüm başlığı -->
       <div style="height:${SEP_H}px;background:#fdf6ee;border-bottom:1px solid #e8d5bc;border-top:2px solid #C6803A;display:flex;align-items:center;padding-left:16px;">
-        <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;color:#9a6321;">KİLOMETRE TAŞLARI</span>
+        <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;color:#9a6321;">TESLİM TARİHLERİ</span>
       </div>
       ${milestones.map(m => `
       <div style="height:72px;border-bottom:1px solid #edf1f2;display:grid;grid-template-columns:46px 212px 86px 78px 78px;align-items:center;background:#fffdf9;">
         <span style="font-size:15px;font-weight:700;color:#C6803A;text-align:center;">${m.no}</span>
         <div style="padding-left:4px;padding-right:10px;">
-          <div style="font-size:9px;font-weight:700;letter-spacing:0.07em;color:#c4a882;margin-bottom:3px;">KİLOMETRE TAŞI</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.07em;color:#c4a882;margin-bottom:3px;">TESLİM TARİHİ</div>
           <div style="font-size:13px;font-weight:600;color:#1b2a31;line-height:1.25;">${m.name}</div>
         </div>
         <div style="text-align:center;">
@@ -286,7 +286,7 @@ function render(config) {
     </div>
     <div style="display:flex;align-items:center;gap:9px;">
       <div style="width:13px;height:13px;background:#C6803A;transform:rotate(45deg);"></div>
-      <span style="font-size:12.5px;color:#43585f;font-weight:500;">Kilometre taşı</span>
+      <span style="font-size:12.5px;color:#43585f;font-weight:500;">Teslim tarihi</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div style="width:0;height:15px;border-left:2px dashed #C8503B;"></div>
@@ -296,7 +296,7 @@ function render(config) {
       <div style="width:26px;height:13px;background:rgba(198,128,58,0.15);border:1px solid rgba(198,128,58,0.4);border-radius:3px;"></div>
       <span style="font-size:12.5px;color:#43585f;font-weight:500;">Ekip izin haftası</span>
     </div>
-    <div style="margin-left:auto;font-size:11.5px;color:#7c8d94;font-style:italic;">Fazlar ardışıktır; kilometre taşları sabit tarihlidir.</div>
+    <div style="margin-left:auto;font-size:11.5px;color:#7c8d94;font-style:italic;">Fazlar ardışıktır; teslim tarihleri sabittir.</div>
   </div>
 
   ${showDescriptions ? `
